@@ -47,9 +47,8 @@
     </div>
 
     <script>
-        // الكودات الـ 5 مالتك
         const KEYS = ["SZ_01", "SZ_02", "SZ_03", "SZ_04", "SZ_05"];
-        const SYMBOL = 'BTCUSDT'; // 🔥 رجعناه بتكوين يا بطل
+        const SYMBOL = 'BTCUSDT'; // 🔥 رجعناه بتكوين رسمي
 
         window.onload = function() { if (localStorage.getItem('sz_activated') === 'true') showRadar(); };
         
@@ -69,7 +68,7 @@
 
         async function start() {
             try {
-                // سحب أقصى عمق للسيولة (5000) عشان نجيب الحيتان البعيدة
+                // سحب أقصى عمق للسيولة (5000)
                 const res = await fetch(`https://api.binance.com/api/v3/depth?symbol=${SYMBOL}&limit=5000`);
                 const data = await res.json();
                 const price = parseFloat(data.bids[0][0]);
@@ -78,7 +77,7 @@
                 let bids = data.bids.map(b => ({p: parseFloat(b[0]), liq: parseFloat(b[0]) * parseFloat(b[1])}));
                 let asks = data.asks.map(a => ({p: parseFloat(a[0]), liq: parseFloat(a[0]) * parseFloat(a[1])}));
 
-                // صيد أضخم 3 جدران سيولة (Whales)
+                // صيد أضخم جدران سيولة مثل اللابتوب
                 let whaleAsks = [...asks].sort((a,b) => b.liq - a.liq).slice(0, 3).sort((a,b) => a.p - b.p);
                 let whaleBids = [...bids].sort((a,b) => b.liq - a.liq).slice(0, 3).sort((a,b) => b.p - a.p);
 
@@ -98,7 +97,6 @@
 
                 let tB = bids.reduce((s,b)=>s+b.liq,0), tS = asks.reduce((s,a)=>s+a.liq,0);
                 let buyP = (tB/(tB+tS)*100);
-                // ميزان القوة (الدوائر)
                 document.getElementById('power-bar').innerText = "🟢".repeat(Math.round(buyP/6.6)) + "🔴".repeat(15-Math.round(buyP/6.6));
                 
                 const s = document.getElementById('sig-val');
@@ -106,7 +104,7 @@
                 s.style.background = buyP > 50 ? "#064e3b" : "#450a0a";
 
             } catch (e) {}
-            setTimeout(start, 5000); // تحديث كل 5 ثواني
+            setTimeout(start, 5000);
         }
     </script>
 </body>
