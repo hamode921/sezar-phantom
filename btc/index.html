@@ -3,62 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BTC WHALE RADAR - PRIVATE</title>
+    <title>BTC PRIVATE RADAR - SEZAR</title>
     <style>
         body { background: #000; color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-        .lock-box { border: 2px solid #fbbf24; padding: 40px; text-align: center; background: #050505; border-radius: 10px; }
+        .lock-box { border: 2px solid #fbbf24; padding: 40px; text-align: center; background: #050505; border-radius: 10px; box-shadow: 0 0 20px rgba(251, 191, 36, 0.1); }
         input { background: #111; border: 1px solid #444; color: #fbbf24; padding: 12px; text-align: center; font-size: 18px; margin-bottom: 20px; width: 250px; outline: none; border-radius: 5px; }
-        button { background: #fbbf24; color: #000; border: none; padding: 12px 30px; font-weight: bold; cursor: pointer; border-radius: 5px; }
-        
+        button { background: #fbbf24; color: #000; border: none; padding: 12px 30px; font-weight: bold; cursor: pointer; border-radius: 5px; width: 100%; }
         #radar-ui { display: none; width: 100%; max-width: 450px; padding: 20px; }
         .header { border: 2px double #fbbf24; padding: 15px; text-align: center; margin-bottom: 20px; }
         .price-box { border: 1px dashed #555; padding: 20px; text-align: center; font-size: 28px; font-weight: bold; margin-bottom: 20px; background: #080808; color: #00d2ff; }
         .wall-row { display: flex; justify-content: space-between; font-size: 14px; padding: 10px 0; border-bottom: 1px solid #111; }
-        .signal { padding: 20px; text-align: center; font-weight: bold; font-size: 20px; border-radius: 5px; margin-top: 20px; }
     </style>
 </head>
 <body>
 
     <div id="auth-screen" class="lock-box">
-        <h2 style="color:#fbbf24;">🔐 BTC PRIVATE RADAR</h2>
-        <p style="color:#666;">أدخل الكود السري للوصول لسيولة البيتكوين</p>
-        <input type="password" id="pass-key" placeholder="Passcode">
+        <h2 style="color:#fbbf24; margin-top:0;">🔐 نظام سيزر فانتوم</h2>
+        <p style="color:#888; font-size:12px;">أدخل كود التفعيل الخاص بك للدخول</p>
+        <input type="password" id="pass-key" placeholder="Enter License Key">
         <br>
-        <button onclick="unlock()">فتح الرادار</button>
+        <button onclick="unlock()">تفعيل الرادار</button>
     </div>
 
     <div id="radar-ui">
         <div class="header">
-            <h2 style="color:#fbbf24; margin:0;">🛰️ BTC WHALE RADAR</h2>
-            <p style="color:#888; font-size:11px;">PRIVATE ACCESS BY SEZAR PHANTOM</p>
+            <h2 style="color:#fbbf24; margin:0;">🛰️ BTC PRIVATE RADAR</h2>
+            <p style="color:#888; font-size:11px;">SECURED ACCESS BY SEZAR PHANTOM</p>
         </div>
-
         <div class="price-box" id="btc-price">$0,000.00</div>
-
-        <div style="margin-bottom:25px;">
-            <div style="color:#ef4444; border-bottom:2px solid; padding-bottom:5px; margin-bottom:10px; font-weight:bold;">🟥 HEAVY SELL WALLS:</div>
+        <div style="margin-bottom:20px;">
+            <div style="color:#ef4444; border-bottom:1px solid; padding-bottom:5px; margin-bottom:10px;">🔴 HEAVY SELL WALLS:</div>
             <div id="s-walls"></div>
         </div>
-
-        <div style="margin-bottom:25px;">
-            <div style="color:#22c55e; border-bottom:2px solid; padding-bottom:5px; margin-bottom:10px; font-weight:bold;">🟩 HEAVY BUY WALLS:</div>
+        <div style="margin-bottom:20px;">
+            <div style="color:#22c55e; border-bottom:1px solid; padding-bottom:5px; margin-bottom:10px;">🟢 HEAVY BUY WALLS:</div>
             <div id="b-walls"></div>
         </div>
-
-        <div id="final-sig" class="signal">ANALYZING...</div>
+        <div id="final-sig" style="padding:15px; text-align:center; font-weight:bold; border-radius:5px;">ANALYZING...</div>
     </div>
 
     <script>
-        const ACCESS_CODE = "SEZAR_BTC"; // 🔥 هذا الكود الخاص بالبيتكوين
+        // --- قائمة الكودات الـ 5 المسموح لها ---
+        const ALLOWED_KEYS = [
+            "SZ_USER_01",
+            "SZ_USER_02",
+            "SZ_USER_03",
+            "SZ_USER_04",
+            "SZ_USER_05"
+        ];
+
+        // فحص البصمة عند فتح الصفحة
+        window.onload = function() {
+            const savedKey = localStorage.getItem('active_license');
+            if (savedKey && ALLOWED_KEYS.includes(savedKey)) {
+                showRadar();
+            }
+        };
 
         function unlock() {
-            if(document.getElementById('pass-key').value === ACCESS_CODE) {
-                document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('radar-ui').style.display = 'block';
-                startBtcRadar();
+            const input = document.getElementById('pass-key').value;
+            
+            if (ALLOWED_KEYS.includes(input)) {
+                // حفظ الكود في المتصفح (قفل الجهاز)
+                localStorage.setItem('active_license', input);
+                showRadar();
             } else {
-                alert("الكود خطأ! تواصل مع المدير.");
+                alert("الكود غير صحيح أو منتهي الصلاحية!");
             }
+        }
+
+        function showRadar() {
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('radar-ui').style.display = 'block';
+            startBtcRadar();
         }
 
         async function startBtcRadar() {
