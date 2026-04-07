@@ -1,72 +1,77 @@
-<script>
-const MIN_WHALE_USDT = 1000000;
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VICTUS RADAR PRO - SEZAR</title>
+    <style>
+        body { background: #000; color: #fff; font-family: monospace; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+        .victus-box { width: 100%; max-width: 450px; border: 2px solid #333; padding: 15px; background: #000; }
+        .price-dash { border: 1px dashed #555; padding: 15px; text-align: center; font-size: 26px; font-weight: bold; margin: 15px 0; background: #080808; }
+        .sig-box { padding: 15px; text-align: center; font-weight: bold; font-size: 18px; border-radius: 4px; border: 1px solid #444; }
+        .row { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px solid #111; color: #ccc; }
+    </style>
+</head>
+<body>
+    <div class="victus-box">
+        <h2 id="coin-name" style="color:#00d2ff; text-align:center;">---</h2>
+        <div class="price-dash" id="price-val">$0.00</div>
+        <div id="sig-val" class="sig-btn" style="padding:15px; text-align:center; font-weight:bold; margin-bottom:15px;">ANALYZING...</div>
+        
+        <div style="margin-bottom:15px;">
+            <div style="color:#ef4444; border-bottom:1px solid; margin-bottom:5px;">🔴 HEAVY SELL WALLS:</div>
+            <div id="s-list"></div>
+        </div>
 
-let lastPrice = 0;
+        <div style="margin-bottom:15px;">
+            <div style="color:#22c55e; border-bottom:1px solid; margin-bottom:5px;">🟢 HEAVY BUY WALLS:</div>
+            <div id="b-list"></div>
+        </div>
 
-async function scanMarket() {
-    try {
-        const res = await fetch(`https://api.binance.com/api/v3/depth?symbol=${SYMBOL}&limit=100`);
-        const data = await res.json();
+        <button onclick="location.href='index.html'" style="width:100%; background:#111; color:#666; border:1px solid #333; padding:10px; cursor:pointer;">[ العودة للقائمة ]</button>
+    </div>
 
-        let buyVolume = 0;
-        let sellVolume = 0;
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const SYMBOL = urlParams.get('symbol') || 'BTCUSDT';
+        let lastPrice = 0;
 
-        let topBid = parseFloat(data.bids[0][0]);
-        let topAsk = parseFloat(data.asks[0][0]);
+        async function scan() {
+            try {
+                const [pR, dR] = await Promise.all([
+                    fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${SYMBOL}`).then(res=>res.json()),
+                    fetch(`https://api.binance.com/api/v3/depth?symbol=${SYMBOL}&limit=100`).then(res=>res.json())
+                ]);
 
-        // حساب الفوليوم الحقيقي
-        data.bids.forEach(b => {
-            let vol = parseFloat(b[0]) * parseFloat(b[1]);
-            if (vol > MIN_WHALE_USDT) buyVolume += vol;
-        });
+                const p = parseFloat(pR.price);
+                document.getElementById('price-val').innerText = '$' + p.toLocaleString();
+                document.getElementById('coin-name').innerText = SYMBOL;
 
-        data.asks.forEach(a => {
-            let vol = parseFloat(a[0]) * parseFloat(a[1]);
-            if (vol > MIN_WHALE_USDT) sellVolume += vol;
-        });
+                // عرض الجدران الحقيقية (أعلى 5 أوردرات سيولة)
+                const getWalls = (data) => data.slice(0, 5).map(o => ({
+                    price: parseFloat(o[0]),
+                    vol: (parseFloat(o[0]) * parseFloat(o[1]) / 1000000).toFixed(2)
+                }));
 
-        let signal = "WAIT ⏳";
+                const sW = getWalls(dR.asks);
+                const bW = getWalls(dR.bids);
 
-        // 🔥 1. Imbalance
-        let imbalance = buyVolume / (sellVolume + 1);
+                document.getElementById('s-list').innerHTML = sW.map(w => `<div class="row"><span>Vol: ${w.vol}M</span><span>$${w.price.toLocaleString()} 🚀</span></div>`).join('');
+                document.getElementById('b-list').innerHTML = bW.map(w => `<div class="row"><span>Vol: ${w.vol}M</span><span>$${w.price.toLocaleString()} 🛡️</span></div>`).join('');
 
-        // 🔥 2. Absorption
-        let priceNow = (topBid + topAsk) / 2;
+                // تحليل الإشارة (نفس العقل الذكي مالتك)
+                let buyTotal = dR.bids.reduce((a,b)=>a+(parseFloat(b[0])*parseFloat(b[1])),0);
+                let sellTotal = dR.asks.reduce((a,b)=>a+(parseFloat(b[0])*parseFloat(b[1])),0);
+                let imb = buyTotal / (sellTotal + 1);
+                
+                let sigBox = document.getElementById('sig-val');
+                if (imb > 1.5) { sigBox.innerText = "BUY 🚀 (IMBALANCE)"; sigBox.style.background = "#22c55e"; sigBox.style.color="#000"; }
+                else if (imb < 0.6) { sigBox.innerText = "SELL 🔻 (IMBALANCE)"; sigBox.style.background = "#ef4444"; sigBox.style.color="#fff"; }
+                else { sigBox.innerText = "NEUTRAL ⚖️"; sigBox.style.background = "#1e293b"; sigBox.style.color="#fff"; }
 
-        let absorption = false;
-        if (buyVolume > sellVolume && priceNow <= lastPrice) {
-            absorption = true;
+            } catch (e) {}
         }
-        if (sellVolume > buyVolume && priceNow >= lastPrice) {
-            absorption = true;
-        }
-
-        // 🔥 3. Fake Break
-        let fakeBreak = false;
-        if (Math.abs(priceNow - lastPrice) > 5 && absorption) {
-            fakeBreak = true;
-        }
-
-        // 🎯 القرار النهائي
-        if (fakeBreak) {
-            signal = "💥 FAKE BREAK (STRONG ENTRY)";
-        } 
-        else if (absorption) {
-            signal = "🧲 ABSORPTION (SMART MONEY)";
-        }
-        else if (imbalance > 2) {
-            signal = "BUY 🚀 (IMBALANCE)";
-        } 
-        else if (imbalance < 0.5) {
-            signal = "SELL 🔻 (IMBALANCE)";
-        }
-
-        document.getElementById("signal").innerText = signal;
-
-        lastPrice = priceNow;
-
-    } catch (e) {
-        document.getElementById("signal").innerText = "ERROR...";
-    }
-}
-</script>
+        setInterval(scan, 3000); scan();
+    </script>
+</body>
+</html>
