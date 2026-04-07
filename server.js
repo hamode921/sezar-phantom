@@ -8,56 +8,113 @@ app.get('/', (req, res) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>رادار SEZAR الفانتوم</title>
+        <title>SEZAR PHANTOM PRO</title>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
         <style>
-            :root { --neon-blue: #00d2ff; --neon-purple: #9d50bb; --bg-dark: #020617; }
-            body { background: var(--bg-dark); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-            .logo-container { margin-top: 30px; text-align: center; }
-            .logo-text { font-size: 50px; font-weight: 900; letter-spacing: 4px; background: linear-gradient(to right, #00d2ff, #9d50bb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 15px rgba(0,210,255,0.6)); margin: 0; }
-            .sub-title { font-size: 12px; color: #94a3b8; letter-spacing: 3px; font-weight: bold; text-transform: uppercase; margin-top: -5px; }
-            .radar-status { color: #22c55e; font-size: 13px; margin: 25px 0; background: rgba(34, 197, 94, 0.1); padding: 5px 15px; border-radius: 20px; border: 1px solid rgba(34, 197, 94, 0.2); }
-            .dot { height: 8px; width: 8px; background-color: #22c55e; border-radius: 50%; display: inline-block; margin-left: 8px; animation: blink 1.2s infinite; }
-            @keyframes blink { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }
-            #list { width: 100%; max-width: 380px; }
-            .card { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px); padding: 18px 25px; border-radius: 20px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center; transition: all 0.4s; }
-            .symbol { font-size: 18px; font-weight: 800; color: #f8fafc; }
-            .price { color: var(--neon-blue); font-size: 22px; font-family: monospace; font-weight: bold; }
-            .contact-section { margin-top: auto; padding-top: 30px; display: flex; gap: 15px; padding-bottom: 20px; }
-            .contact-btn { text-decoration: none; padding: 12px 25px; border-radius: 12px; font-size: 14px; font-weight: bold; display: flex; align-items: center; gap: 10px; }
-            .tg { background: #0088cc; color: white; }
-            .gm { background: #ea4335; color: white; }
+            :root { --neon-blue: #00d2ff; --neon-purple: #9d50bb; --bg: #020617; }
+            body { background: var(--bg); color: white; font-family: monospace; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+            .logo-text { font-size: 35px; font-weight: 900; background: linear-gradient(to right, #00d2ff, #9d50bb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 20px 0; letter-spacing: 5px; }
+            
+            /* الصفحة الرئيسية */
+            #main-page { width: 100%; max-width: 400px; }
+            .coin-btn { background: rgba(30, 41, 59, 0.5); padding: 20px; border-radius: 15px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; cursor: pointer; transition: 0.3s; }
+            .coin-btn:hover { border-color: var(--neon-blue); transform: scale(1.02); }
+
+            /* صفحة التفاصيل (مثل الصورة اللي ارسلتها) */
+            #details-page { display: none; width: 100%; max-width: 450px; background: #000; border: 2px solid #333; padding: 15px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+            .header-info { border-bottom: 2px double #555; padding-bottom: 10px; margin-bottom: 15px; text-align: center; color: #fbbf24; }
+            .price-bar { font-size: 22px; color: #fff; background: #111; padding: 10px; margin: 10px 0; border: 1px dashed #444; }
+            .wall-box { margin: 15px 0; }
+            .sell-title { color: #ef4444; font-weight: bold; border-bottom: 1px solid #ef4444; }
+            .buy-title { color: #22c55e; font-weight: bold; border-bottom: 1px solid #22c55e; }
+            .data-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; border-bottom: 1px solid #222; }
+            .back-btn { background: #334155; color: white; border: none; padding: 10px; width: 100%; border-radius: 5px; cursor: pointer; margin-top: 20px; }
         </style>
     </head>
     <body>
-        <div class="logo-container">
-            <h1 class="logo-text">SEZAR</h1>
-            <div class="sub-title">Phantom Radar Pro</div>
+        <div id="main-page">
+            <h1 class="logo-text">SEZAR PRO</h1>
+            <div id="coin-list">جاري تحميل الرادار...</div>
         </div>
-        <div class="radar-status"><span class="dot"></span> جاري تتبع السوق مباشر</div>
-        <div id="list"></div>
-        <div class="contact-section">
-            <a href="https://t.me/es44se" target="_blank" class="contact-btn tg"><i class="fab fa-telegram-plane"></i> Telegram</a>
-            <a href="mailto:sezarphantom@gmail.com" class="contact-btn gm"><i class="fas fa-envelope"></i> Gmail</a>
+
+        <div id="details-page">
+            <div class="header-info">
+                <div>🛰️ VICTUS RADAR PRO - BY SEZAR</div>
+                <div style="font-size:10px; color:#888;">ID: SEZAR_PHANTOM_49D7A</div>
+            </div>
+            <div id="target-coin" style="text-align:center; font-size:24px; font-weight:bold; color:var(--neon-blue);">BTC</div>
+            <div class="price-bar">PRICE: <span id="live-price">$0.00</span> | <span style="color:#22c55e;">BUY: 55.2%</span></div>
+            
+            <div class="wall-box">
+                <div class="sell-title">🔴 MAJOR SELL WALLS (Targets):</div>
+                <div id="sell-walls"></div>
+            </div>
+
+            <div class="wall-box">
+                <div class="buy-title">🟢 MAJOR BUY WALLS (Supports):</div>
+                <div id="buy-walls"></div>
+            </div>
+
+            <div id="signal" style="background:#22c55e; color:#000; padding:5px; text-align:center; font-weight:bold;">SIGNAL: BULLISH</div>
+            <button class="back-btn" onclick="showMain()">🏠 العودة للرئيسية</button>
         </div>
+
         <script>
-            const symbols = ['BTCUSDT', 'DOGEUSDT', 'PEPEUSDT', 'SHIBUSDT', 'ETHUSDT'];
-            async function getPrices() {
-                try {
-                    const responses = await Promise.all(symbols.map(s => fetch('https://api.binance.com/api/v3/ticker/price?symbol=' + s)));
-                    const data = await Promise.all(responses.map(r => r.json()));
-                    document.getElementById('list').innerHTML = data.map(item => \`
-                        <div class="card">
-                            <span class="symbol">\${item.symbol.replace('USDT','')}</span>
-                            <span class="price">$\${parseFloat(item.price).toFixed(item.symbol.includes('USDT') && item.price < 1 ? 6 : 2)}</span>
-                        </div>
-                    \`).join('');
-                } catch (e) {
-                    document.getElementById('list').innerHTML = "<div style='color:#ef4444; text-align:center;'>فشل جلب البيانات.. تأكد من الإنترنت</div>";
-                }
+            const symbols = ['BTCUSDT', 'DOGEUSDT', 'PEPEUSDT', 'SHIBUSDT', 'XAUUSDT'];
+            let currentSymbol = '';
+
+            async function updateMain() {
+                const responses = await Promise.all(symbols.map(s => fetch('https://api.binance.com/api/v3/ticker/price?symbol=' + s)));
+                const data = await Promise.all(responses.map(r => r.json()));
+                document.getElementById('coin-list').innerHTML = data.map(item => \`
+                    <div class="coin-btn" onclick="showDetails('\${item.symbol}')">
+                        <span>\${item.symbol.replace('USDT','')}</span>
+                        <span style="color:var(--neon-blue)">$\${parseFloat(item.price).toFixed(2)}</span>
+                    </div>
+                \`).join('');
             }
-            setInterval(getPrices, 2000);
-            getPrices();
+
+            async function showDetails(symbol) {
+                currentSymbol = symbol;
+                document.getElementById('main-page').style.display = 'none';
+                document.getElementById('details-page').style.display = 'block';
+                document.getElementById('target-coin').innerText = symbol.replace('USDT','');
+                updateDetails();
+            }
+
+            function showMain() {
+                document.getElementById('main-page').style.display = 'block';
+                document.getElementById('details-page').style.display = 'none';
+            }
+
+            async function updateDetails() {
+                if(document.getElementById('details-page').style.display === 'none') return;
+                
+                const res = await fetch('https://api.binance.com/api/v3/depth?limit=5&symbol=' + currentSymbol);
+                const depth = await res.json();
+                const priceRes = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=' + currentSymbol);
+                const priceData = await priceRes.json();
+
+                document.getElementById('live-price').innerText = '$' + parseFloat(priceData.price).toFixed(2);
+
+                document.getElementById('sell-walls').innerHTML = depth.asks.map(a => \`
+                    <div class="data-row">
+                        <span>🎯 $\${parseFloat(a[0]).toFixed(2)}</span>
+                        <span>Vol: \${parseFloat(a[1]).toFixed(2)}M</span>
+                    </div>
+                \`).join('');
+
+                document.getElementById('buy-walls').innerHTML = depth.bids.map(b => \`
+                    <div class="data-row">
+                        <span>🛡️ $\${parseFloat(b[0]).toFixed(2)}</span>
+                        <span>Vol: \${parseFloat(b[1]).toFixed(2)}M</span>
+                    </div>
+                \`).join('');
+            }
+
+            setInterval(updateMain, 5000);
+            setInterval(updateDetails, 2000);
+            updateMain();
         </script>
     </body>
     </html>
