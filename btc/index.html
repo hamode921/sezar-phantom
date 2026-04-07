@@ -3,82 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BTC PRIVATE RADAR - SEZAR</title>
+    <title>BTC VICTUS RADAR - SEZAR PRIVATE</title>
     <style>
         body { background: #000; color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 10px; }
-        .lock-box { border: 2px solid #fbbf24; padding: 40px; text-align: center; background: #050505; border-radius: 10px; margin-top: 20vh; }
-        input { background: #111; border: 1px solid #444; color: #fbbf24; padding: 12px; text-align: center; font-size: 18px; margin-bottom: 20px; width: 250px; outline: none; }
-        button { background: #fbbf24; color: #000; border: none; padding: 12px 30px; font-weight: bold; cursor: pointer; width: 100%; }
+        .lock-box { border: 2px solid #fbbf24; padding: 40px; text-align: center; background: #050505; border-radius: 10px; margin-top: 20vh; max-width: 350px; }
+        input { background: #111; border: 1px solid #444; color: #fbbf24; padding: 12px; text-align: center; font-size: 18px; margin-bottom: 20px; width: 100%; outline: none; border-radius: 5px; box-sizing: border-box; }
+        button { background: #fbbf24; color: #000; border: none; padding: 12px 30px; font-weight: bold; cursor: pointer; width: 100%; border-radius: 5px; }
         
         #radar-ui { display: none; width: 100%; max-width: 450px; }
         .header { border: 2px double #fbbf24; padding: 15px; text-align: center; margin-bottom: 20px; }
         .price-box { border: 1px dashed #555; padding: 20px; text-align: center; font-size: 28px; font-weight: bold; margin-bottom: 20px; background: #080808; color: #00d2ff; }
         .row { display: flex; justify-content: space-between; font-size: 13px; padding: 8px 0; border-bottom: 1px solid #111; color: #ccc; }
-        .signal-box { padding: 15px; text-align: center; font-weight: bold; margin-top: 15px; border-radius: 4px; }
+        .bar-container { margin: 15px 0; text-align: center; font-size: 12px; }
+        .signal-box { padding: 15px; text-align: center; font-weight: bold; margin-top: 15px; border-radius: 4px; border: 1px solid #444; }
     </style>
 </head>
 <body>
 
     <div id="auth-screen" class="lock-box">
-        <h2 style="color:#fbbf24;">🔐 نظام سيزر فانتوم</h2>
-        <input type="password" id="pass-key" placeholder="أدخل كود التفعيل">
-        <button onclick="activate()">تفعيل الرادار</button>
+        <h2 style="color:#fbbf24; margin-top:0;">🔐 نظام سيزر فانتوم</h2>
+        <p style="color:#666; font-size:11px; margin-bottom:20px;">هذا الكود يربط بالجهاز ولا يمكن استخدامه مرة أخرى</p>
+        <input type="password" id="pass-key" placeholder="أدخل كود التفعيل الخاص بك">
+        <button onclick="activate()">تفعيل الجهاز الحالي</button>
     </div>
 
     <div id="radar-ui">
         <div class="header">
-            <h2 style="color:#fbbf24; margin:0;">🛰️ BTC PRIVATE RADAR</h2>
-            <p style="color:#888; font-size:11px;">LOCKED TO THIS DEVICE</p>
+            <h2 style="color:#fbbf24; margin:0;">🔭 VICTUS FULL RADAR</h2>
+            <p style="color:#888; font-size:11px; margin:5px 0;">BTCUSDT - PRIVATE ACCESS</p>
         </div>
-        <div class="price-box" id="btc-price">$0.00</div>
-        
+
+        <div class="price-box" id="btc-price">LOADING...</div>
+
+        <div class="bar-container">
+            <div id="buy-sell-text" style="margin-bottom: 5px;"></div>
+            <div id="power-bar" style="letter-spacing: 2px;"></div>
+        </div>
+
         <div style="margin-bottom:20px;">
-            <div style="color:#ef4444; border-bottom:1px solid; padding-bottom:5px; margin-bottom:10px;">🔴 MAJOR SELL WALLS (Targets):</div>
+            <div style="color:#ef4444; border-bottom:1px solid; padding-bottom:5px; margin-bottom:10px; font-weight:bold;">🔴 MAJOR SELL WALLS (Targets):</div>
             <div id="s-walls"></div>
         </div>
 
         <div style="margin-bottom:20px;">
-            <div style="color:#22c55e; border-bottom:1px solid; padding-bottom:5px; margin-bottom:10px;">🟢 MAJOR BUY WALLS (Supports):</div>
+            <div style="color:#22c55e; border-bottom:1px solid; padding-bottom:5px; margin-bottom:10px; font-weight:bold;">🟢 MAJOR BUY WALLS (Supports):</div>
             <div id="b-walls"></div>
         </div>
 
-        <div id="sig-val" class="signal-box">ANALYZING...</div>
+        <div id="sig-val" class="signal-box">ANALYZING MARKET...</div>
     </div>
 
     <script>
-        const KEYS = ["SZ_01", "SZ_02", "SZ_03", "SZ_04", "SZ_05"];
+        // --- الكودات الـ 5 المعتمدة ---
+        const ALLOWED_KEYS = ["SZ_01", "SZ_02", "SZ_03", "SZ_04", "SZ_05"];
+        const SYMBOL = 'BTCUSDT';
 
         window.onload = function() {
-            if (localStorage.getItem('is_activated') === 'true') showRadar();
+            if (localStorage.getItem('sz_activated') === 'true') {
+                showRadar();
+            }
         };
 
         function activate() {
             const input = document.getElementById('pass-key').value;
-            if (KEYS.includes(input)) {
-                localStorage.setItem('is_activated', 'true');
+            if (ALLOWED_KEYS.includes(input)) {
+                localStorage.setItem('sz_activated', 'true');
+                localStorage.setItem('user_key', input);
                 showRadar();
-            } else { alert("الكود خطأ!"); }
+            } else {
+                alert("الكود خطأ أو غير مفعل!");
+            }
         }
 
         function showRadar() {
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('radar-ui').style.display = 'block';
-            startAnalysis();
+            startFullAnalysis();
         }
 
-        async function startAnalysis() {
+        async function startFullAnalysis() {
             try {
-                const [pR, dR] = await Promise.all([
-                    fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT').then(res=>res.json()),
-                    fetch('https://api.binance.com/api/v3/depth?symbol=BTCUSDT&limit=1000').then(res=>res.json())
-                ]);
+                const response = await fetch(`https://api.binance.com/api/v3/depth?symbol=${SYMBOL}&limit=1000`);
+                const data = await response.json();
+                
+                if (!data.bids) return;
 
-                const midPrice = parseFloat(pR.price);
-                document.getElementById('btc-price').innerText = '$' + midPrice.toLocaleString();
+                const midPrice = parseFloat(data.bids[0][0]);
+                document.getElementById('btc-price').innerText = '$' + midPrice.toLocaleString(undefined, {minimumFractionDigits: 2});
 
-                let allBids = dR.bids.map(b => ({p: parseFloat(b[0]), liq: parseFloat(b[0]) * parseFloat(b[1])}));
-                let allAsks = dR.asks.map(a => ({p: parseFloat(a[0]), liq: parseFloat(a[0]) * parseFloat(a[1])}));
+                let allBids = data.bids.map(b => ({p: parseFloat(b[0]), liq: (parseFloat(b[0]) * parseFloat(b[1]))}));
+                let allAsks = data.asks.map(a => ({p: parseFloat(a[0]), liq: (parseFloat(a[0]) * parseFloat(a[1]))}));
 
+                let totalBuy = allBids.reduce((s, b) => s + b.liq, 0);
+                let totalSell = allAsks.reduce((s, a) => s + a.liq, 0);
+                let buyPer = (totalBuy / (totalBuy + totalSell) * 100).toFixed(1);
+                let sellPer = (100 - buyPer).toFixed(1);
+
+                // ميزان القوة
+                let barLength = 15;
+                let bCount = Math.round((buyPer / 100) * barLength);
+                document.getElementById('power-bar').innerText = "🟢".repeat(bCount) + "🔴".repeat(barLength - bCount);
+                document.getElementById('buy-sell-text').innerText = `BUY: ${buyPer}% | SELL: ${sellPer}%`;
+
+                // صيد الحيتان (كودك الأصلي)
                 let whaleAsks = allAsks.sort((a,b) => b.liq - a.liq).slice(0, 3).sort((a,b) => a.p - b.p);
                 let whaleBids = allBids.sort((a,b) => b.liq - a.liq).slice(0, 3).sort((a,b) => b.p - a.p);
 
@@ -96,16 +123,17 @@
                         <span>${(b.liq/1000000).toFixed(2)}M</span>
                     </div>`).join('');
 
-                let totalBuy = allBids.reduce((s, b) => s + b.liq, 0);
-                let totalSell = allAsks.reduce((s, a) => s + a.liq, 0);
-                let buyPer = (totalBuy / (totalBuy + totalSell) * 100);
-                
                 const sigBox = document.getElementById('sig-val');
-                sigBox.innerText = buyPer > 50 ? "SIGNAL: BULLISH 🟢" : "SIGNAL: BEARISH 🔴";
-                sigBox.style.background = buyPer > 50 ? "#064e3b" : "#450a0a";
+                if (buyPer > 50) {
+                    sigBox.innerText = "SIGNAL: BULLISH 🟢";
+                    sigBox.style.background = "#064e3b"; sigBox.style.color = "#10b981";
+                } else {
+                    sigBox.innerText = "SIGNAL: BEARISH 🔴";
+                    sigBox.style.background = "#450a0a"; sigBox.style.color = "#ef4444";
+                }
 
-            } catch (e) { }
-            setTimeout(startAnalysis, 5000);
+            } catch (e) { console.error(e); }
+            setTimeout(startFullAnalysis, 5000);
         }
     </script>
 </body>
