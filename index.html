@@ -3,37 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VICTUS RADAR PRO - SEZAR</title>
+    <title>BTC WHALE RADAR - PRIVATE</title>
     <style>
-        body { background: #000; color: white; font-family: monospace; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .header { border: 2px double #fbbf24; padding: 15px; text-align: center; width: 100%; max-width: 400px; margin-bottom: 20px; }
-        .coin-card { background: #080808; border: 1px solid #222; padding: 15px; width: 100%; max-width: 400px; margin-bottom: 10px; display: flex; justify-content: space-between; cursor: pointer; text-decoration: none; color: white; border-radius: 8px; }
+        body { background: #000; color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .lock-box { border: 2px solid #fbbf24; padding: 40px; text-align: center; background: #050505; border-radius: 10px; }
+        input { background: #111; border: 1px solid #444; color: #fbbf24; padding: 12px; text-align: center; font-size: 18px; margin-bottom: 20px; width: 250px; outline: none; border-radius: 5px; }
+        button { background: #fbbf24; color: #000; border: none; padding: 12px 30px; font-weight: bold; cursor: pointer; border-radius: 5px; }
+        
+        #radar-ui { display: none; width: 100%; max-width: 450px; padding: 20px; }
+        .header { border: 2px double #fbbf24; padding: 15px; text-align: center; margin-bottom: 20px; }
+        .price-box { border: 1px dashed #555; padding: 20px; text-align: center; font-size: 28px; font-weight: bold; margin-bottom: 20px; background: #080808; color: #00d2ff; }
+        .wall-row { display: flex; justify-content: space-between; font-size: 14px; padding: 10px 0; border-bottom: 1px solid #111; }
+        .signal { padding: 20px; text-align: center; font-weight: bold; font-size: 20px; border-radius: 5px; margin-top: 20px; }
     </style>
 </head>
 <body>
-    <div class="header"><h2>🚀 VICTUS RADAR PRO - SEZAR</h2></div>
-    <div id="list" style="width: 100%; display: flex; flex-direction: column; align-items: center;">جاري استدعاء الحيتان...</div>
+
+    <div id="auth-screen" class="lock-box">
+        <h2 style="color:#fbbf24;">🔐 BTC PRIVATE RADAR</h2>
+        <p style="color:#666;">أدخل الكود السري للوصول لسيولة البيتكوين</p>
+        <input type="password" id="pass-key" placeholder="Passcode">
+        <br>
+        <button onclick="unlock()">فتح الرادار</button>
+    </div>
+
+    <div id="radar-ui">
+        <div class="header">
+            <h2 style="color:#fbbf24; margin:0;">🛰️ BTC WHALE RADAR</h2>
+            <p style="color:#888; font-size:11px;">PRIVATE ACCESS BY SEZAR PHANTOM</p>
+        </div>
+
+        <div class="price-box" id="btc-price">$0,000.00</div>
+
+        <div style="margin-bottom:25px;">
+            <div style="color:#ef4444; border-bottom:2px solid; padding-bottom:5px; margin-bottom:10px; font-weight:bold;">🟥 HEAVY SELL WALLS:</div>
+            <div id="s-walls"></div>
+        </div>
+
+        <div style="margin-bottom:25px;">
+            <div style="color:#22c55e; border-bottom:2px solid; padding-bottom:5px; margin-bottom:10px; font-weight:bold;">🟩 HEAVY BUY WALLS:</div>
+            <div id="b-walls"></div>
+        </div>
+
+        <div id="final-sig" class="signal">ANALYZING...</div>
+    </div>
 
     <script>
-        const coins = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'PEPEUSDT'];
-        async function load() {
-            try {
-                // استخدام رابط مباشر يتجاوز حظر السيرفرات
-                const r = await Promise.all(coins.map(c => 
-                    fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${c}`)
-                    .then(res => res.json())
-                ));
-                document.getElementById('list').innerHTML = r.map(i => `
-                    <a href="radar.html?symbol=${i.symbol}" class="coin-card">
-                        <b>${i.symbol.replace('USDT','')}</b>
-                        <span style="color:#00d2ff;">$${parseFloat(i.price).toLocaleString()}</span>
-                    </a>`).join('');
-            } catch(e) {
-                document.getElementById('list').innerHTML = "خطأ في الاتصال.. تأكد من الإنترنت";
+        const ACCESS_CODE = "SEZAR_BTC"; // 🔥 هذا الكود الخاص بالبيتكوين
+
+        function unlock() {
+            if(document.getElementById('pass-key').value === ACCESS_CODE) {
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('radar-ui').style.display = 'block';
+                startBtcRadar();
+            } else {
+                alert("الكود خطأ! تواصل مع المدير.");
             }
         }
-        load();
-        setInterval(load, 5000);
+
+        async function startBtcRadar() {
+            try {
+                const [pR, dR] = await Promise.all([
+                    fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT').then(res=>res.json()),
+                    fetch('https://api.binance.com/api/v3/depth?symbol=BTCUSDT&limit=1000').then(res=>res.json())
+                ]);
+
+                const price = parseFloat(pR.price);
+                document.getElementById('btc-price').innerText = '$' + price.toLocaleString();
+
+                const getTopWalls = (data, isBuy) => {
+                    return data.map(o => ({p: parseFloat(o[0]), liq: parseFloat(o[0]) * parseFloat(o[1])}))
+                        .sort((a,b) => b.liq - a.liq).slice(0, 4)
+                        .sort((a,b) => isBuy ? b.p - a.p : a.p - b.p);
+                };
+
+                const sWalls = getTopWalls(dR.asks, false);
+                const bWalls = getTopWalls(dR.bids, true);
+
+                document.getElementById('s-walls').innerHTML = sWalls.map(w => `
+                    <div class="wall-row">
+                        <span>🚀 $${w.p.toLocaleString()}</span>
+                        <span style="color:#888;">${(w.liq/1000000).toFixed(2)}M</span>
+                    </div>`).join('');
+
+                document.getElementById('b-walls').innerHTML = bWalls.map(w => `
+                    <div class="wall-row">
+                        <span>🛡️ $${w.p.toLocaleString()}</span>
+                        <span style="color:#888;">${(w.liq/1000000).toFixed(2)}M</span>
+                    </div>`).join('');
+
+                const buySum = dR.bids.reduce((a,b)=>a+(parseFloat(b[0])*parseFloat(b[1])),0);
+                const sellSum = dR.asks.reduce((a,b)=>a+(parseFloat(b[0])*parseFloat(b[1])),0);
+                const sig = document.getElementById('final-sig');
+                
+                if(buySum > sellSum) {
+                    sig.innerText = "SIGNAL: BULLISH 🟢"; sig.style.background = "#064e3b"; sig.style.color="#10b981";
+                } else {
+                    sig.innerText = "SIGNAL: BEARISH 🔴"; sig.style.background = "#450a0a"; sig.style.color="#ef4444";
+                }
+            } catch (e) {}
+            setTimeout(startBtcRadar, 4000);
+        }
     </script>
 </body>
 </html>
