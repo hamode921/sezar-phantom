@@ -1,39 +1,35 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VICTUS RADAR PRO - SEZAR</title>
-    <style>
-        body { background: #000; color: white; font-family: monospace; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .header { border: 2px double #fbbf24; padding: 15px; text-align: center; width: 100%; max-width: 400px; margin-bottom: 20px; }
-        .coin-card { background: #080808; border: 1px solid #222; padding: 15px; width: 100%; max-width: 400px; margin-bottom: 10px; display: flex; justify-content: space-between; cursor: pointer; text-decoration: none; color: white; border-radius: 8px; }
-    </style>
+<meta charset="UTF-8">
+<title>Victus Radar</title>
+<style>
+body { background:black; color:#00eaff; text-align:center; font-family:Arial; }
+.box { border:2px solid gold; padding:20px; margin:20px; font-size:24px; }
+.coin {
+    display:block;
+    margin:20px;
+    padding:20px;
+    border:1px solid #00eaff;
+    cursor:pointer;
+    font-size:22px;
+}
+</style>
 </head>
-<body>
-    <div class="header"><h2>🚀 VICTUS RADAR PRO - SEZAR</h2></div>
-    <div id="list" style="width: 100%; display: flex; flex-direction: column; align-items: center;">جاري استدعاء الحيتان...</div>
 
-    <script>
-        const coins = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'PEPEUSDT'];
-        async function load() {
-            try {
-                // استخدام رابط مباشر يتجاوز حظر السيرفرات
-                const r = await Promise.all(coins.map(c => 
-                    fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${c}`)
-                    .then(res => res.json())
-                ));
-                document.getElementById('list').innerHTML = r.map(i => `
-                    <a href="radar.html?symbol=${i.symbol}" class="coin-card">
-                        <b>${i.symbol.replace('USDT','')}</b>
-                        <span style="color:#00d2ff;">$${parseFloat(i.price).toLocaleString()}</span>
-                    </a>`).join('');
-            } catch(e) {
-                document.getElementById('list').innerHTML = "خطأ في الاتصال.. تأكد من الإنترنت";
-            }
-        }
-        load();
-        setInterval(load, 5000);
-    </script>
+<body>
+
+<div class="box">🚀 VICTUS RADAR - SELECT COIN</div>
+
+<div class="coin" onclick="go('BTCUSDT')">BTC / Bitcoin</div>
+<div class="coin" onclick="go('ETHUSDT')">ETH / Ethereum</div>
+<div class="coin" onclick="go('SOLUSDT')">SOL / Solana</div>
+
+<script>
+function go(symbol){
+    window.location.href = "radar.html?symbol=" + symbol;
+}
+</script>
+
 </body>
 </html>
