@@ -13,24 +13,22 @@
         .header { border: 2px double #fbbf24; padding: 15px; text-align: center; margin-bottom: 20px; }
         .price-box { border: 1px dashed #555; padding: 20px; text-align: center; font-size: 28px; font-weight: bold; margin-bottom: 20px; background: #080808; color: #00d2ff; }
         .row { display: flex; justify-content: space-between; font-size: 14px; padding: 10px 0; border-bottom: 1px solid #111; }
+        .stats-text { text-align: center; font-size: 14px; margin-bottom: 5px; color: #eee; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="auth-screen" class="lock-box">
         <h2 style="color:#fbbf24; margin-top:0;">🔐 نظام سيزر فانتوم</h2>
-        <p style="color:#666; font-size:11px;">BTC PRIVATE ACCESS</p>
         <input type="password" id="pass-key" placeholder="أدخل كود التفعيل">
-        <br>
-        <button onclick="activate()">دخول النظام</button>
+        <button onclick="activate()">دخول</button>
     </div>
 
     <div id="radar-ui">
-        <div class="header">
-            <h2 style="color:#fbbf24; margin:0;">🔭 VICTUS FULL RADAR</h2>
-            <p style="color:#888; font-size:11px;">[ BTCUSDT ]</p>
-        </div>
+        <div class="header"><h2>🔭 VICTUS FULL RADAR</h2><p>[ BTCUSDT ]</p></div>
         <div class="price-box" id="coin-price">$0,000.00</div>
+        
+        <div class="stats-text" id="buy-sell-per">BUY: 50% | SELL: 50%</div>
         <div id="power-bar" style="text-align:center; margin-bottom:20px; letter-spacing:3px;"></div>
 
         <div style="margin-bottom:25px;">
@@ -48,27 +46,14 @@
 
     <script>
         const KEYS = ["SZ_01", "SZ_02", "SZ_03", "SZ_04", "SZ_05"];
-        const SYMBOL = 'BTCUSDT'; // 🔥 رجعناه بتكوين رسمي
+        const SYMBOL = 'BTCUSDT';
 
         window.onload = function() { if (localStorage.getItem('sz_activated') === 'true') showRadar(); };
-        
-        function activate() { 
-            const input = document.getElementById('pass-key').value;
-            if (KEYS.includes(input)) { 
-                localStorage.setItem('sz_activated', 'true'); 
-                showRadar(); 
-            } else { alert("الكود خطأ!"); }
-        }
-
-        function showRadar() { 
-            document.getElementById('auth-screen').style.display = 'none'; 
-            document.getElementById('radar-ui').style.display = 'block'; 
-            start(); 
-        }
+        function activate() { if (KEYS.includes(document.getElementById('pass-key').value)) { localStorage.setItem('sz_activated', 'true'); showRadar(); } else { alert("خطأ!"); } }
+        function showRadar() { document.getElementById('auth-screen').style.display = 'none'; document.getElementById('radar-ui').style.display = 'block'; start(); }
 
         async function start() {
             try {
-                // سحب أقصى عمق للسيولة (5000)
                 const res = await fetch(`https://api.binance.com/api/v3/depth?symbol=${SYMBOL}&limit=5000`);
                 const data = await res.json();
                 const price = parseFloat(data.bids[0][0]);
@@ -77,7 +62,6 @@
                 let bids = data.bids.map(b => ({p: parseFloat(b[0]), liq: parseFloat(b[0]) * parseFloat(b[1])}));
                 let asks = data.asks.map(a => ({p: parseFloat(a[0]), liq: parseFloat(a[0]) * parseFloat(a[1])}));
 
-                // صيد أضخم جدران سيولة مثل اللابتوب
                 let whaleAsks = [...asks].sort((a,b) => b.liq - a.liq).slice(0, 3).sort((a,b) => a.p - b.p);
                 let whaleBids = [...bids].sort((a,b) => b.liq - a.liq).slice(0, 3).sort((a,b) => b.p - a.p);
 
@@ -97,6 +81,10 @@
 
                 let tB = bids.reduce((s,b)=>s+b.liq,0), tS = asks.reduce((s,a)=>s+a.liq,0);
                 let buyP = (tB/(tB+tS)*100);
+                let sellP = 100 - buyP;
+
+                // تحديث النسب المئوية والشريط
+                document.getElementById('buy-sell-per').innerText = `BUY: ${buyP.toFixed(1)}% | SELL: ${sellP.toFixed(1)}%`;
                 document.getElementById('power-bar').innerText = "🟢".repeat(Math.round(buyP/6.6)) + "🔴".repeat(15-Math.round(buyP/6.6));
                 
                 const s = document.getElementById('sig-val');
