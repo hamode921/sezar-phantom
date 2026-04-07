@@ -1,66 +1,72 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>رادار سيزر الاحترافي</title>
-    <style>
-        body { background: #000; color: #fff; font-family: monospace; padding: 15px; display: flex; flex-direction: column; align-items: center; }
-        .victus-box { width: 100%; max-width: 450px; border: 2px solid #333; padding: 20px; background: #000; }
-        .price-dash { border: 1px dashed #555; padding: 15px; text-align: center; font-size: 26px; font-weight: bold; margin: 15px 0; background: #080808; }
-        .sig-box { padding: 20px; text-align: center; font-weight: bold; font-size: 18px; border-radius: 4px; border: 1px solid #444; }
-        .data-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #111; font-size: 14px; }
-    </style>
-</head>
-<body>
-    <div class="victus-box">
-        <h2 id="coin-name" style="color:#00d2ff; text-align:center;">BTC</h2>
-        <div class="price-dash" id="price-val">$0.00</div>
-        <div id="sig-val" class="sig-box">ANALYZING...</div>
-        
-        <div style="margin-top:20px;">
-            <div class="data-row"><span>Whale Buy:</span><span id="b-vol" style="color:#22c55e;">$0M</span></div>
-            <div class="data-row"><span>Whale Sell:</span><span id="s-vol" style="color:#ef4444;">$0M</span></div>
-        </div>
-        <button onclick="location.href='index.html'" style="width:100%; margin-top:20px; background:#111; color:#666; border:1px solid #333; padding:10px; cursor:pointer;">[ العودة للقائمة ]</button>
-    </div>
+<script>
+const MIN_WHALE_USDT = 1000000;
 
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const SYMBOL = urlParams.get('symbol') || 'BTCUSDT';
-        let lastPrice = 0;
+let lastPrice = 0;
 
-        async function scan() {
-            try {
-                const [pR, dR] = await Promise.all([
-                    fetch('https://api.binance.com/api/v3/ticker/price?symbol='+SYMBOL).then(res=>res.json()),
-                    fetch('https://api.binance.com/api/v3/depth?symbol='+SYMBOL+'&limit=100').then(res=>res.json())
-                ]);
+async function scanMarket() {
+    try {
+        const res = await fetch(`https://api.binance.com/api/v3/depth?symbol=${SYMBOL}&limit=100`);
+        const data = await res.json();
 
-                let buyVol = 0, sellVol = 0;
-                let priceNow = parseFloat(pR.price);
-                document.getElementById('price-val').innerText = '$' + priceNow.toLocaleString();
-                document.getElementById('coin-name').innerText = SYMBOL;
+        let buyVolume = 0;
+        let sellVolume = 0;
 
-                dR.bids.forEach(b => { let v = parseFloat(b[0]) * parseFloat(b[1]); if(v > 1000000) buyVol += v; });
-                dR.asks.forEach(a => { let v = parseFloat(a[0]) * parseFloat(a[1]); if(v > 1000000) sellVol += v; });
+        let topBid = parseFloat(data.bids[0][0]);
+        let topAsk = parseFloat(data.asks[0][0]);
 
-                document.getElementById('b-vol').innerText = '$' + (buyVol/1000000).toFixed(2) + 'M';
-                document.getElementById('s-vol').innerText = '$' + (sellVol/1000000).toFixed(2) + 'M';
+        // حساب الفوليوم الحقيقي
+        data.bids.forEach(b => {
+            let vol = parseFloat(b[0]) * parseFloat(b[1]);
+            if (vol > MIN_WHALE_USDT) buyVolume += vol;
+        });
 
-                let sigBox = document.getElementById('sig-val');
-                let imbalance = buyVol / (sellVol + 1);
-                let absorption = (buyVol > sellVol && priceNow <= lastPrice) || (sellVol > buyVol && priceNow >= lastPrice);
+        data.asks.forEach(a => {
+            let vol = parseFloat(a[0]) * parseFloat(a[1]);
+            if (vol > MIN_WHALE_USDT) sellVolume += vol;
+        });
 
-                if (absorption) { sigBox.innerText = "🧲 ABSORPTION (SMART MONEY)"; sigBox.style.background = "#9333ea"; }
-                else if (imbalance > 2) { sigBox.innerText = "BUY 🚀 (IMBALANCE)"; sigBox.style.background = "#22c55e"; }
-                else if (imbalance < 0.5) { sigBox.innerText = "SELL 🔻 (IMBALANCE)"; sigBox.style.background = "#ef4444"; }
-                else { sigBox.innerText = "NEUTRAL ⚖️"; sigBox.style.background = "#1e293b"; }
+        let signal = "WAIT ⏳";
 
-                lastPrice = priceNow;
-            } catch (e) {}
+        // 🔥 1. Imbalance
+        let imbalance = buyVolume / (sellVolume + 1);
+
+        // 🔥 2. Absorption
+        let priceNow = (topBid + topAsk) / 2;
+
+        let absorption = false;
+        if (buyVolume > sellVolume && priceNow <= lastPrice) {
+            absorption = true;
         }
-        setInterval(scan, 3000); scan();
-    </script>
-</body>
-</html>
+        if (sellVolume > buyVolume && priceNow >= lastPrice) {
+            absorption = true;
+        }
+
+        // 🔥 3. Fake Break
+        let fakeBreak = false;
+        if (Math.abs(priceNow - lastPrice) > 5 && absorption) {
+            fakeBreak = true;
+        }
+
+        // 🎯 القرار النهائي
+        if (fakeBreak) {
+            signal = "💥 FAKE BREAK (STRONG ENTRY)";
+        } 
+        else if (absorption) {
+            signal = "🧲 ABSORPTION (SMART MONEY)";
+        }
+        else if (imbalance > 2) {
+            signal = "BUY 🚀 (IMBALANCE)";
+        } 
+        else if (imbalance < 0.5) {
+            signal = "SELL 🔻 (IMBALANCE)";
+        }
+
+        document.getElementById("signal").innerText = signal;
+
+        lastPrice = priceNow;
+
+    } catch (e) {
+        document.getElementById("signal").innerText = "ERROR...";
+    }
+}
+</script>
