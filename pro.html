@@ -6,22 +6,16 @@
     <title>رادار سيزار PRO</title>
     <style>
         body { background: #000; color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 10px; }
-        
-        /* تصميم شاشة القفل */
         .lock-box { border: 2px solid #fbbf24; padding: 30px; text-align: center; background: #050505; margin-top: 15vh; border-radius: 15px; width: 280px; box-shadow: 0 0 20px rgba(251, 191, 36, 0.1); }
-        
-        /* تصميم النص التحذيري */
         .secure-title { color: #fbbf24; font-size: 18px; font-weight: bold; margin-bottom: 5px; }
         .secure-warn { color: #888; font-size: 11px; margin-bottom: 25px; line-height: 1.5; }
-
         input { background: #111; border: 1px solid #444; color: #fbbf24; padding: 12px; text-align: center; margin-bottom: 20px; width: 90%; outline: none; border-radius: 5px; font-weight: bold; }
         button { background: #fbbf24; color: #000; border: none; padding: 12px; font-weight: bold; cursor: pointer; border-radius: 5px; width: 100%; transition: 0.3s; }
-        
         #radar-ui { display: none; width: 100%; max-width: 450px; }
         .header { border: 2px double #fbbf24; padding: 15px; text-align: center; margin-bottom: 20px; }
         .price-box { border: 1px dashed #555; padding: 20px; text-align: center; font-size: 28px; font-weight: bold; margin-bottom: 5px; background: #080808; color: #00d2ff; }
-        .row { display: flex; justify-content: space-between; font-size: 14px; padding: 10px 0; border-bottom: 1px solid #111; }
-        .stats-text { text-align: center; font-size: 14px; margin-bottom: 5px; color: #eee; font-weight: bold; }
+        .row { display: flex; justify-content: space-between; font-size: 13px; padding: 10px 0; border-bottom: 1px solid #111; }
+        .perc-tag { color: #fbbf24; font-size: 11px; margin-right: 5px; }
         .contact-dev { margin-top: 30px; border-top: 1px dashed #444; padding-top: 20px; display: flex; justify-content: space-around; width: 100%; }
         .contact-dev a { color: #fbbf24; text-decoration: none; font-size: 11px; border: 1px solid #fbbf24; padding: 6px 12px; border-radius: 5px; font-weight: bold; }
         #timer-box { font-size: 10px; color: #444; margin-bottom: 20px; text-align: center; }
@@ -32,7 +26,6 @@
     <div id="auth-screen" class="lock-box">
         <div class="secure-title">🔒 قفـل البصمة الرقمية</div>
         <div class="secure-warn">هذا الكود يعمل على جهاز واحد فقط<br>ولن يعمل على غيره نهائياً</div>
-        
         <input type="password" id="pass-key" placeholder="أدخل كود التفعيل">
         <button onclick="activate()">تفعيل لجهاز واحد فقط</button>
     </div>
@@ -41,8 +34,9 @@
         <div class="header"><h2>🔭 رادار سيزار PRO</h2><p>[ BTCUSDT ]</p></div>
         <div class="price-box" id="coin-price">Loading...</div>
         <div id="timer-box">تحديث السيولة خلال: <span id="seconds">30</span> ثانية</div>
-        <div class="stats-text" id="buy-sell-per">BUY: --% | SELL: --%</div>
+        <div style="text-align:center; font-size:14px; margin-bottom:5px; font-weight:bold;" id="buy-sell-per">BUY: --% | SELL: --%</div>
         <div id="power-bar" style="text-align:center; margin-bottom:20px; letter-spacing:3px;"></div>
+        
         <div id="s-walls"></div>
         <div id="b-walls" style="margin-top:20px;"></div>
         
@@ -53,7 +47,7 @@
     </div>
 
     <script>
-        const SYSTEM_VERSION = "PRO_V_SECURE_V2"; // تغيير النسخة لتصفير الأجهزة
+        const SYSTEM_VERSION = "PRO_V_FINAL_STABLE_V12"; 
         const KEYS = ["SZ_01", "SZ_02", "SZ_03", "SZ_04", "SZ_05"];
         const SYMBOL = 'BTCUSDT';
         let timeLeft = 30;
@@ -69,7 +63,6 @@
 
         function activate() {
             if (KEYS.includes(document.getElementById('pass-key').value)) {
-                // تفعيل بسيط (بذاكرة المتصفح) لتجنب وقوف الرادار
                 localStorage.setItem('sz_pro_activated', 'true');
                 localStorage.setItem('sz_pro_version', SYSTEM_VERSION);
                 showRadar();
@@ -108,13 +101,14 @@
                 let bids = data.bids.map(b => ({p: parseFloat(b[0]), liq: parseFloat(b[0]) * parseFloat(b[1])}));
                 let asks = data.asks.map(a => ({p: parseFloat(a[0]), liq: parseFloat(a[0]) * parseFloat(a[1])}));
                 
+                let tB = bids.reduce((s,b)=>s+b.liq,0), tS = asks.reduce((s,a)=>s+a.liq,0);
+
                 let whaleAsks = [...asks].sort((a,b) => b.liq - a.liq).slice(0, 3).sort((a,b) => a.p - b.p);
                 let whaleBids = [...bids].sort((a,b) => b.liq - a.liq).slice(0, 3).sort((a,b) => b.p - a.p);
 
-                document.getElementById('s-walls').innerHTML = `<div style="color:#ef4444; font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS (30s):</div>` + whaleAsks.map(a => `<div class="row"><span>Vol: ${(a.liq/1000000).toFixed(2)}M</span><span>🎯 $${a.p.toLocaleString()}</span></div>`).join('');
-                document.getElementById('b-walls').innerHTML = `<div style="color:#22c55e; font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS (30s):</div>` + whaleBids.map(b => `<div class="row"><span>Vol: ${(b.liq/1000000).toFixed(2)}M</span><span>🛡️ $${b.p.toLocaleString()}</span></div>`).join('');
+                document.getElementById('s-walls').innerHTML = `<div style="color:#ef4444; font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS (30s):</div>` + whaleAsks.map(a => `<div class="row"><span>Vol: ${(a.liq/1000000).toFixed(2)}M <span class="perc-tag">(${(a.liq/tS*100).toFixed(1)}%)</span></span><span>🎯 $${a.p.toLocaleString()}</span></div>`).join('');
+                document.getElementById('b-walls').innerHTML = `<div style="color:#22c55e; font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS (30s):</div>` + whaleBids.map(b => `<div class="row"><span>Vol: ${(b.liq/1000000).toFixed(2)}M <span class="perc-tag">(${(b.liq/tB*100).toFixed(1)}%)</span></span><span>🛡️ $${b.p.toLocaleString()}</span></div>`).join('');
 
-                let tB = bids.reduce((s,b)=>s+b.liq,0), tS = asks.reduce((s,a)=>s+a.liq,0);
                 let buyP = (tB/(tB+tS)*100);
                 document.getElementById('buy-sell-per').innerText = `BUY: ${buyP.toFixed(1)}% | SELL: ${(100-buyP).toFixed(1)}%`;
                 document.getElementById('power-bar').innerText = "🟢".repeat(Math.round(buyP/6.6)) + "🔴".repeat(15-Math.round(buyP/6.6));
