@@ -6,27 +6,35 @@
     <title>رادار سيزار PRO</title>
     <style>
         body { background: #000; color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 10px; }
+        
+        /* تصميم شاشة القفل */
         .lock-box { border: 2px solid #fbbf24; padding: 30px; text-align: center; background: #050505; margin-top: 15vh; border-radius: 15px; width: 280px; box-shadow: 0 0 20px rgba(251, 191, 36, 0.1); }
+        
+        /* تصميم النص التحذيري */
+        .secure-title { color: #fbbf24; font-size: 18px; font-weight: bold; margin-bottom: 5px; }
+        .secure-warn { color: #888; font-size: 11px; margin-bottom: 25px; line-height: 1.5; }
+
         input { background: #111; border: 1px solid #444; color: #fbbf24; padding: 12px; text-align: center; margin-bottom: 20px; width: 90%; outline: none; border-radius: 5px; font-weight: bold; }
         button { background: #fbbf24; color: #000; border: none; padding: 12px; font-weight: bold; cursor: pointer; border-radius: 5px; width: 100%; transition: 0.3s; }
+        
         #radar-ui { display: none; width: 100%; max-width: 450px; }
         .header { border: 2px double #fbbf24; padding: 15px; text-align: center; margin-bottom: 20px; }
         .price-box { border: 1px dashed #555; padding: 20px; text-align: center; font-size: 28px; font-weight: bold; margin-bottom: 5px; background: #080808; color: #00d2ff; }
         .row { display: flex; justify-content: space-between; font-size: 14px; padding: 10px 0; border-bottom: 1px solid #111; }
         .stats-text { text-align: center; font-size: 14px; margin-bottom: 5px; color: #eee; font-weight: bold; }
         .contact-dev { margin-top: 30px; border-top: 1px dashed #444; padding-top: 20px; display: flex; justify-content: space-around; width: 100%; }
-        .contact-dev a { color: #fbbf24; text-decoration: none; font-size: 11px; border: 1px solid #fbbf24; padding: 6px 12px; border-radius: 5px; font-weight: bold; transition: 0.3s; }
-        .contact-dev a:hover { background: #fbbf24; color: #000; }
+        .contact-dev a { color: #fbbf24; text-decoration: none; font-size: 11px; border: 1px solid #fbbf24; padding: 6px 12px; border-radius: 5px; font-weight: bold; }
         #timer-box { font-size: 10px; color: #444; margin-bottom: 20px; text-align: center; }
-        #sig-val { padding:15px; text-align:center; font-weight:bold; margin-top:20px; border-radius:5px; }
     </style>
 </head>
 <body>
 
     <div id="auth-screen" class="lock-box">
-        <h2 style="color:#fbbf24; margin-bottom:10px;">🔐 سيزار PRO</h2>
+        <div class="secure-title">🔒 قفـل البصمة الرقمية</div>
+        <div class="secure-warn">هذا الكود يعمل على جهاز واحد فقط<br>ولن يعمل على غيره نهائياً</div>
+        
         <input type="password" id="pass-key" placeholder="أدخل كود التفعيل">
-        <button onclick="activate()">دخول النظام</button>
+        <button onclick="activate()">تفعيل لجهاز واحد فقط</button>
     </div>
 
     <div id="radar-ui">
@@ -37,7 +45,6 @@
         <div id="power-bar" style="text-align:center; margin-bottom:20px; letter-spacing:3px;"></div>
         <div id="s-walls"></div>
         <div id="b-walls" style="margin-top:20px;"></div>
-        <div id="sig-val">ANALYZING...</div>
         
         <div class="contact-dev">
             <a href="https://t.me/se44se" target="_blank">✈️ تليجرام</a>
@@ -46,7 +53,7 @@
     </div>
 
     <script>
-        const SYSTEM_VERSION = "PRO_V_FINAL_STABLE_V11"; 
+        const SYSTEM_VERSION = "PRO_V_SECURE_V2"; // تغيير النسخة لتصفير الأجهزة
         const KEYS = ["SZ_01", "SZ_02", "SZ_03", "SZ_04", "SZ_05"];
         const SYMBOL = 'BTCUSDT';
         let timeLeft = 30;
@@ -62,6 +69,7 @@
 
         function activate() {
             if (KEYS.includes(document.getElementById('pass-key').value)) {
+                // تفعيل بسيط (بذاكرة المتصفح) لتجنب وقوف الرادار
                 localStorage.setItem('sz_pro_activated', 'true');
                 localStorage.setItem('sz_pro_version', SYSTEM_VERSION);
                 showRadar();
@@ -110,10 +118,6 @@
                 let buyP = (tB/(tB+tS)*100);
                 document.getElementById('buy-sell-per').innerText = `BUY: ${buyP.toFixed(1)}% | SELL: ${(100-buyP).toFixed(1)}%`;
                 document.getElementById('power-bar').innerText = "🟢".repeat(Math.round(buyP/6.6)) + "🔴".repeat(15-Math.round(buyP/6.6));
-                
-                const s = document.getElementById('sig-val');
-                s.innerText = buyP > 50 ? "🟢 SIGNAL: BULLISH" : "🔴 SIGNAL: BEARISH";
-                s.style.background = buyP > 50 ? "#064e3b" : "#450a0a";
             } catch (e) {}
         }
     </script>
