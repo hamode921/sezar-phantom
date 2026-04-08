@@ -14,8 +14,11 @@
         #radar-ui { display: none; width: 100%; max-width: 450px; }
         .header { border: 2px double #fbbf24; padding: 15px; text-align: center; margin-bottom: 20px; }
         .price-box { border: 1px dashed #555; padding: 20px; text-align: center; font-size: 28px; font-weight: bold; margin-bottom: 5px; background: #080808; color: #00d2ff; }
-        .row { display: flex; justify-content: space-between; font-size: 13px; padding: 10px 0; border-bottom: 1px solid #111; }
-        .perc-tag { color: #fbbf24; font-size: 11px; margin-right: 5px; }
+        
+        /* تنسيق الجدران الجديد */
+        .row { display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center; font-size: 13px; padding: 12px 0; border-bottom: 1px solid #111; text-align: center; }
+        .perc-tag { color: #fbbf24; font-weight: bold; font-size: 12px; background: rgba(251, 191, 36, 0.1); padding: 2px 6px; border-radius: 4px; }
+        
         .contact-dev { margin-top: 30px; border-top: 1px dashed #444; padding-top: 20px; display: flex; justify-content: space-around; width: 100%; }
         .contact-dev a { color: #fbbf24; text-decoration: none; font-size: 11px; border: 1px solid #fbbf24; padding: 6px 12px; border-radius: 5px; font-weight: bold; }
         #timer-box { font-size: 10px; color: #444; margin-bottom: 20px; text-align: center; }
@@ -47,7 +50,7 @@
     </div>
 
     <script>
-        const SYSTEM_VERSION = "PRO_V_FINAL_STABLE_V12"; 
+        const SYSTEM_VERSION = "PRO_V_FINAL_STABLE_V13"; 
         const KEYS = ["SZ_01", "SZ_02", "SZ_03", "SZ_04", "SZ_05"];
         const SYMBOL = 'BTCUSDT';
         let timeLeft = 30;
@@ -106,8 +109,21 @@
                 let whaleAsks = [...asks].sort((a,b) => b.liq - a.liq).slice(0, 3).sort((a,b) => a.p - b.p);
                 let whaleBids = [...bids].sort((a,b) => b.liq - a.liq).slice(0, 3).sort((a,b) => b.p - a.p);
 
-                document.getElementById('s-walls').innerHTML = `<div style="color:#ef4444; font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS (30s):</div>` + whaleAsks.map(a => `<div class="row"><span>Vol: ${(a.liq/1000000).toFixed(2)}M <span class="perc-tag">(${(a.liq/tS*100).toFixed(1)}%)</span></span><span>🎯 $${a.p.toLocaleString()}</span></div>`).join('');
-                document.getElementById('b-walls').innerHTML = `<div style="color:#22c55e; font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS (30s):</div>` + whaleBids.map(b => `<div class="row"><span>Vol: ${(b.liq/1000000).toFixed(2)}M <span class="perc-tag">(${(b.liq/tB*100).toFixed(1)}%)</span></span><span>🛡️ $${b.p.toLocaleString()}</span></div>`).join('');
+                // بناء صفوف البيع (Sell Walls)
+                document.getElementById('s-walls').innerHTML = `<div style="color:#ef4444; font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px; text-align:right;">🔴 SELL WALLS (30s):</div>` + 
+                whaleAsks.map(a => `<div class="row">
+                    <span style="text-align:right;">🎯 $${a.p.toLocaleString()}</span>
+                    <span class="perc-tag">${((a.liq / tS) * 100).toFixed(2)}%</span>
+                    <span style="text-align:left;">Vol: ${(a.liq/1000000).toFixed(2)}M</span>
+                </div>`).join('');
+
+                // بناء صفوف الشراء (Buy Walls)
+                document.getElementById('b-walls').innerHTML = `<div style="color:#22c55e; font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px; text-align:right;">🟢 BUY WALLS (30s):</div>` + 
+                whaleBids.map(b => `<div class="row">
+                    <span style="text-align:right;">🛡️ $${b.p.toLocaleString()}</span>
+                    <span class="perc-tag">${((b.liq / tB) * 100).toFixed(2)}%</span>
+                    <span style="text-align:left;">Vol: ${(b.liq/1000000).toFixed(2)}M</span>
+                </div>`).join('');
 
                 let buyP = (tB/(tB+tS)*100);
                 document.getElementById('buy-sell-per').innerText = `BUY: ${buyP.toFixed(1)}% | SELL: ${(100-buyP).toFixed(1)}%`;
