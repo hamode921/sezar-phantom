@@ -5,21 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>رادار سيزار PRO</title>
     <style>
-        body { background: #000; color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 10px; }
+        body { background: #000; color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 10px; text-align: right; }
+        
+        /* شاشة القفل */
         .lock-box { border: 2px solid #fbbf24; padding: 30px; text-align: center; background: #050505; margin-top: 15vh; border-radius: 15px; width: 280px; box-shadow: 0 0 20px rgba(251, 191, 36, 0.1); }
         .secure-title { color: #fbbf24; font-size: 18px; font-weight: bold; margin-bottom: 5px; }
         .secure-warn { color: #888; font-size: 11px; margin-bottom: 25px; line-height: 1.5; }
         input { background: #111; border: 1px solid #444; color: #fbbf24; padding: 12px; text-align: center; margin-bottom: 20px; width: 90%; outline: none; border-radius: 5px; font-weight: bold; }
         button { background: #fbbf24; color: #000; border: none; padding: 12px; font-weight: bold; cursor: pointer; border-radius: 5px; width: 100%; transition: 0.3s; }
-        #radar-ui { display: none; width: 100%; max-width: 450px; }
+        
+        /* واجهة الرادار */
+        #radar-ui { display: none; width: 100%; max-width: 450px; padding-bottom: 80px; /* مسافة للكبسات تحت */ }
         .header { border: 2px double #fbbf24; padding: 15px; text-align: center; margin-bottom: 20px; }
         .price-box { border: 1px dashed #555; padding: 20px; text-align: center; font-size: 28px; font-weight: bold; margin-bottom: 5px; background: #080808; color: #00d2ff; }
+        #timer-box { font-size: 10px; color: #444; margin-bottom: 20px; text-align: center; width: 100%; }
+        
+        /* تنسيق البيانات */
         .row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 12px 5px; border-bottom: 1px solid #111; }
         .perc-tag { color: #fbbf24; font-weight: bold; font-size: 11px; background: rgba(251, 191, 36, 0.1); padding: 2px 8px; border-radius: 10px; border: 0.5px solid rgba(251, 191, 36, 0.3); }
-        .contact-dev { margin-top: 30px; border-top: 1px dashed #444; padding-top: 20px; display: flex; justify-content: space-around; width: 100%; }
-        .contact-dev a { color: #fbbf24; text-decoration: none; font-size: 11px; border: 1px solid #fbbf24; padding: 6px 12px; border-radius: 5px; font-weight: bold; }
-        #timer-box { font-size: 10px; color: #444; margin-bottom: 20px; text-align: center; }
-        .single-title { color: #00d2ff; font-weight: bold; margin-top: 20px; border-bottom: 1px solid #333; padding-bottom: 5px; text-align: right; width: 100%; }
+        
+        /* الإشارة الذكية (الجديدة) */
+        #sig-box { text-align: center; font-weight: bold; padding: 15px; margin-top: 30px; border-radius: 5px; font-size: 16px; width: 100%; }
+        .sig-bullish { background: #064e3b; color: #22c55e; border: 1px solid #22c55e; }
+        .sig-bearish { background: #450a0a; color: #ef4444; border: 1px solid #ef4444; }
+        
+        /* روابط التواصل */
+        .contact-dev { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.8); padding: 15px 0; display: flex; justify-content: space-around; border-top: 1px solid #222; }
+        .contact-dev a { color: #fbbf24; text-decoration: none; font-size: 11px; border: 1px solid #fbbf24; padding: 8px 16px; border-radius: 5px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -35,14 +47,13 @@
         <div class="header"><h2>🔭 رادار سيزار PRO</h2><p>[ BTCUSDT ]</p></div>
         <div class="price-box" id="coin-price">Loading...</div>
         <div id="timer-box">تحديث السيولة خلال: <span id="seconds">30</span> ثانية</div>
-        <div style="text-align:center; font-size:14px; margin-bottom:5px; font-weight:bold;" id="buy-sell-per">BUY: --% | SELL: --%</div>
-        <div id="power-bar" style="text-align:center; margin-bottom:20px; letter-spacing:3px;"></div>
+        <div style="text-align:center; font-size:14px; margin-bottom:5px; font-weight:bold; width: 100%;" id="buy-sell-per">BUY: --% | SELL: --%</div>
+        <div id="power-bar" style="text-align:center; margin-bottom:20px; letter-spacing:3px; width: 100%;"></div>
         
         <div id="s-walls"></div>
         <div id="b-walls" style="margin-top:20px;"></div>
-
-        <div class="single-title">⚡ LATEST LARGE SINGLES:</div>
-        <div id="singles-box"></div>
+        
+        <div id="sig-box">ANALYZING...</div>
         
         <div class="contact-dev">
             <a href="https://t.me/se44se" target="_blank">✈️ تليجرام</a>
@@ -51,7 +62,7 @@
     </div>
 
     <script>
-        const SYSTEM_VERSION = "PRO_V_FINAL_STABLE_V15"; 
+        const SYSTEM_VERSION = "PRO_V_SECURE_V16"; 
         const KEYS = ["SZ_01", "SZ_02", "SZ_03", "SZ_04", "SZ_05"];
         const SYMBOL = 'BTCUSDT';
         let timeLeft = 30;
@@ -106,26 +117,32 @@
                 let asks = data.asks.map(a => ({p: parseFloat(a[0]), liq: parseFloat(a[0]) * parseFloat(a[1])}));
                 
                 let tB = bids.reduce((s,b)=>s+b.liq,0), tS = asks.reduce((s,a)=>s+a.liq,0);
-                let totalMkt = tB + tS;
 
                 let whaleAsks = [...asks].sort((a,b) => b.liq - a.liq).slice(0, 3).sort((a,b) => a.p - b.p);
                 let whaleBids = [...bids].sort((a,b) => b.liq - a.liq).slice(0, 3).sort((a,b) => b.p - a.p);
 
                 // SELL WALLS
-                document.getElementById('s-walls').innerHTML = `<div style="color:#ef4444; font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px; text-align:right;">🔴 SELL WALLS (30s):</div>` + 
+                document.getElementById('s-walls').innerHTML = `<div style="color:#ef4444; font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS (30s):</div>` + 
                 whaleAsks.map(a => `<div class="row"><span>Vol: ${(a.liq/1000000).toFixed(2)}M</span><span class="perc-tag">${((a.liq / tS) * 100).toFixed(2)}%</span><span>$${a.p.toLocaleString()} 🎯</span></div>`).join('');
 
                 // BUY WALLS
-                document.getElementById('b-walls').innerHTML = `<div style="color:#22c55e; font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px; text-align:right;">🟢 BUY WALLS (30s):</div>` + 
+                document.getElementById('b-walls').innerHTML = `<div style="color:#22c55e; font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS (30s):</div>` + 
                 whaleBids.map(b => `<div class="row"><span>Vol: ${(b.liq/1000000).toFixed(2)}M</span><span class="perc-tag">${((b.liq / tB) * 100).toFixed(2)}%</span><span>$${b.p.toLocaleString()} 🛡️</span></div>`).join('');
-
-                // SINGLES (أكبر الأوردرات الفردية)
-                let singles = [...bids, ...asks].sort((a,b) => b.liq - a.liq).slice(0, 2);
-                document.getElementById('singles-box').innerHTML = singles.map(o => `<div class="row" style="background:rgba(0, 210, 255, 0.05);"><span>Vol: ${(o.liq/1000000).toFixed(2)}M</span><span class="perc-tag">${((o.liq / totalMkt) * 100).toFixed(2)}%</span><span>$${o.p.toLocaleString()} ⚡</span></div>`).join('');
 
                 let buyP = (tB/(tB+tS)*100);
                 document.getElementById('buy-sell-per').innerText = `BUY: ${buyP.toFixed(1)}% | SELL: ${(100-buyP).toFixed(1)}%`;
                 document.getElementById('power-bar').innerText = "🟢".repeat(Math.round(buyP/6.6)) + "🔴".repeat(15-Math.round(buyP/6.6));
+                
+                // تحديث الإشارة الذكية (BULLISH / BEARISH)
+                const sig = document.getElementById('sig-box');
+                if (buyP > 50) {
+                    sig.innerText = "🟢 SIGNAL: BULLISH";
+                    sig.className = "sig-bullish";
+                } else {
+                    sig.innerText = "🔴 SIGNAL: BEARISH";
+                    sig.className = "sig-bearish";
+                }
+                
             } catch (e) {}
         }
     </script>
