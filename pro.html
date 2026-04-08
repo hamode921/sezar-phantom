@@ -11,21 +11,20 @@
         button { background: #fbbf24; color: #000; border: none; padding: 12px; font-weight: bold; cursor: pointer; border-radius: 5px; width: 100%; transition: 0.3s; }
         #radar-ui { display: none; width: 100%; max-width: 450px; }
         .header { border: 2px double #fbbf24; padding: 15px; text-align: center; margin-bottom: 20px; }
-        .price-box { border: 1px dashed #555; padding: 20px; text-align: center; font-size: 28px; font-weight: bold; margin-bottom: 20px; background: #080808; color: #00d2ff; }
+        .price-box { border: 1px dashed #555; padding: 20px; text-align: center; font-size: 28px; font-weight: bold; margin-bottom: 5px; background: #080808; color: #00d2ff; }
         .row { display: flex; justify-content: space-between; font-size: 14px; padding: 10px 0; border-bottom: 1px solid #111; }
         .stats-text { text-align: center; font-size: 14px; margin-bottom: 5px; color: #eee; font-weight: bold; }
-        /* تصميم الروابط تحت شاشة القفل */
         .contact-dev { margin-top: 25px; border-top: 1px dashed #444; padding-top: 15px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 10px; }
         .contact-dev a { color: #fbbf24; text-decoration: none; font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 70px; }
+        #timer-box { font-size: 10px; color: #444; margin-bottom: 20px; text-align: center; }
     </style>
 </head>
 <body>
 
-    <div id="auth-screen" class="lock-box">
+    <div id="auth-screen" class="lock-box" style="display:none;">
         <h2 style="color:#fbbf24; margin-bottom:10px;">🔐 سيزار PRO</h2>
         <input type="password" id="pass-key" placeholder="كود تفعيل PRO">
         <button onclick="activate()">دخول النظام</button>
-        
         <div class="contact-dev">
             <a href="https://t.me/YOUR_USERNAME" target="_blank"><span>✈️ تليجرام</span></a>
             <a href="https://LINK_HERE.com" target="_blank" style="color: #00d2ff;"><span>🌐 الرابط الخاص</span></a>
@@ -36,6 +35,7 @@
     <div id="radar-ui">
         <div class="header"><h2>🔭 رادار سيزار PRO</h2><p>[ BTCUSDT ]</p></div>
         <div class="price-box" id="coin-price">Loading...</div>
+        <div id="timer-box">تحديث السيولة خلال: <span id="seconds">30</span> ثانية</div>
         <div class="stats-text" id="buy-sell-per">BUY: --% | SELL: --%</div>
         <div id="power-bar" style="text-align:center; margin-bottom:20px; letter-spacing:3px;"></div>
         <div id="s-walls"></div>
@@ -44,9 +44,10 @@
     </div>
 
     <script>
-        const SYSTEM_VERSION = "PRO_V3"; 
+        const SYSTEM_VERSION = "PRO_V_FINAL_SPEED"; 
         const KEYS = ["SZ_01", "SZ_02", "SZ_03", "SZ_04", "SZ_05"];
         const SYMBOL = 'BTCUSDT';
+        let timeLeft = 30;
 
         window.onload = function() {
             if (localStorage.getItem('sz_pro_activated') === 'true' && localStorage.getItem('sz_pro_version') === SYSTEM_VERSION) {
@@ -68,15 +69,33 @@
         function showRadar() {
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('radar-ui').style.display = 'block';
-            startRadar();
+            updatePriceOnly(); // السعر أول مرة
+            updateLiquidity(); // السيولة أول مرة
+            setInterval(updatePriceOnly, 1000); // تحديث السعر كل ثانية 🔥
+            setInterval(updateLiquidity, 30000); // تحديث الجدران كل 30 ثانية 🛡️
+            setInterval(updateTimer, 1000); // العداد
         }
 
-        async function updateData() {
+        function updateTimer() {
+            timeLeft--;
+            if (timeLeft < 0) timeLeft = 30;
+            document.getElementById('seconds').innerText = timeLeft;
+        }
+
+        async function updatePriceOnly() {
+            try {
+                const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${SYMBOL}`);
+                const data = await res.json();
+                const price = parseFloat(data.price);
+                document.getElementById('coin-price').innerText = '$' + price.toLocaleString(undefined, {minimumFractionDigits: 2});
+            } catch (e) {}
+        }
+
+        async function updateLiquidity() {
+            timeLeft = 30;
             try {
                 const res = await fetch(`https://api.binance.com/api/v3/depth?symbol=${SYMBOL}&limit=5000`);
                 const data = await res.json();
-                const price = parseFloat(data.bids[0][0]);
-                document.getElementById('coin-price').innerText = '$' + price.toLocaleString(undefined, {minimumFractionDigits: 2});
 
                 let bids = data.bids.map(b => ({p: parseFloat(b[0]), liq: parseFloat(b[0]) * parseFloat(b[1])}));
                 let asks = data.asks.map(a => ({p: parseFloat(a[0]), liq: parseFloat(a[0]) * parseFloat(a[1])}));
@@ -84,7 +103,6 @@
                 let whaleAsks = [...asks].sort((a,b) => b.liq - a.liq).slice(0, 3).sort((a,b) => a.p - b.p);
                 let whaleBids = [...bids].sort((a,b) => b.liq - a.liq).slice(0, 3).sort((a,b) => b.p - a.p);
 
-                // هنا ضفت لك كلمة (30s) حتى تظهر بالشاشة
                 document.getElementById('s-walls').innerHTML = `<div style="color:#ef4444; font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS (30s):</div>` + whaleAsks.map(a => `<div class="row"><span>Vol: ${(a.liq/1000000).toFixed(2)}M</span><span>🎯 $${a.p.toLocaleString()}</span></div>`).join('');
                 document.getElementById('b-walls').innerHTML = `<div style="color:#22c55e; font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS (30s):</div>` + whaleBids.map(b => `<div class="row"><span>Vol: ${(b.liq/1000000).toFixed(2)}M</span><span>🛡️ $${b.p.toLocaleString()}</span></div>`).join('');
 
@@ -97,11 +115,6 @@
                 s.innerText = buyP > 50 ? "🟢 SIGNAL: BULLISH" : "🔴 SIGNAL: BEARISH";
                 s.style.background = buyP > 50 ? "#064e3b" : "#450a0a";
             } catch (e) {}
-        }
-
-        function startRadar() {
-            updateData(); 
-            setInterval(updateData, 30000); 
         }
     </script>
 </body>
