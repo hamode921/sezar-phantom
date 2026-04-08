@@ -14,14 +14,12 @@
         #radar-ui { display: none; width: 100%; max-width: 450px; }
         .header { border: 2px double #fbbf24; padding: 15px; text-align: center; margin-bottom: 20px; }
         .price-box { border: 1px dashed #555; padding: 20px; text-align: center; font-size: 28px; font-weight: bold; margin-bottom: 5px; background: #080808; color: #00d2ff; }
-        
-        /* الترتيب اللي تحبه: حجم - نسبة - سعر */
         .row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 12px 5px; border-bottom: 1px solid #111; }
         .perc-tag { color: #fbbf24; font-weight: bold; font-size: 11px; background: rgba(251, 191, 36, 0.1); padding: 2px 8px; border-radius: 10px; border: 0.5px solid rgba(251, 191, 36, 0.3); }
-        
         .contact-dev { margin-top: 30px; border-top: 1px dashed #444; padding-top: 20px; display: flex; justify-content: space-around; width: 100%; }
         .contact-dev a { color: #fbbf24; text-decoration: none; font-size: 11px; border: 1px solid #fbbf24; padding: 6px 12px; border-radius: 5px; font-weight: bold; }
         #timer-box { font-size: 10px; color: #444; margin-bottom: 20px; text-align: center; }
+        .single-title { color: #00d2ff; font-weight: bold; margin-top: 20px; border-bottom: 1px solid #333; padding-bottom: 5px; text-align: right; width: 100%; }
     </style>
 </head>
 <body>
@@ -42,6 +40,9 @@
         
         <div id="s-walls"></div>
         <div id="b-walls" style="margin-top:20px;"></div>
+
+        <div class="single-title">⚡ LATEST LARGE SINGLES:</div>
+        <div id="singles-box"></div>
         
         <div class="contact-dev">
             <a href="https://t.me/se44se" target="_blank">✈️ تليجرام</a>
@@ -50,7 +51,7 @@
     </div>
 
     <script>
-        const SYSTEM_VERSION = "PRO_V_FINAL_STABLE_V14"; 
+        const SYSTEM_VERSION = "PRO_V_FINAL_STABLE_V15"; 
         const KEYS = ["SZ_01", "SZ_02", "SZ_03", "SZ_04", "SZ_05"];
         const SYMBOL = 'BTCUSDT';
         let timeLeft = 30;
@@ -105,25 +106,22 @@
                 let asks = data.asks.map(a => ({p: parseFloat(a[0]), liq: parseFloat(a[0]) * parseFloat(a[1])}));
                 
                 let tB = bids.reduce((s,b)=>s+b.liq,0), tS = asks.reduce((s,a)=>s+a.liq,0);
+                let totalMkt = tB + tS;
 
                 let whaleAsks = [...asks].sort((a,b) => b.liq - a.liq).slice(0, 3).sort((a,b) => a.p - b.p);
                 let whaleBids = [...bids].sort((a,b) => b.liq - a.liq).slice(0, 3).sort((a,b) => b.p - a.p);
 
                 // SELL WALLS
                 document.getElementById('s-walls').innerHTML = `<div style="color:#ef4444; font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px; text-align:right;">🔴 SELL WALLS (30s):</div>` + 
-                whaleAsks.map(a => `<div class="row">
-                    <span>Vol: ${(a.liq/1000000).toFixed(2)}M</span>
-                    <span class="perc-tag">${((a.liq / tS) * 100).toFixed(2)}%</span>
-                    <span>$${a.p.toLocaleString()} 🎯</span>
-                </div>`).join('');
+                whaleAsks.map(a => `<div class="row"><span>Vol: ${(a.liq/1000000).toFixed(2)}M</span><span class="perc-tag">${((a.liq / tS) * 100).toFixed(2)}%</span><span>$${a.p.toLocaleString()} 🎯</span></div>`).join('');
 
                 // BUY WALLS
                 document.getElementById('b-walls').innerHTML = `<div style="color:#22c55e; font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px; text-align:right;">🟢 BUY WALLS (30s):</div>` + 
-                whaleBids.map(b => `<div class="row">
-                    <span>Vol: ${(b.liq/1000000).toFixed(2)}M</span>
-                    <span class="perc-tag">${((b.liq / tB) * 100).toFixed(2)}%</span>
-                    <span>$${b.p.toLocaleString()} 🛡️</span>
-                </div>`).join('');
+                whaleBids.map(b => `<div class="row"><span>Vol: ${(b.liq/1000000).toFixed(2)}M</span><span class="perc-tag">${((b.liq / tB) * 100).toFixed(2)}%</span><span>$${b.p.toLocaleString()} 🛡️</span></div>`).join('');
+
+                // SINGLES (أكبر الأوردرات الفردية)
+                let singles = [...bids, ...asks].sort((a,b) => b.liq - a.liq).slice(0, 2);
+                document.getElementById('singles-box').innerHTML = singles.map(o => `<div class="row" style="background:rgba(0, 210, 255, 0.05);"><span>Vol: ${(o.liq/1000000).toFixed(2)}M</span><span class="perc-tag">${((o.liq / totalMkt) * 100).toFixed(2)}%</span><span>$${o.p.toLocaleString()} ⚡</span></div>`).join('');
 
                 let buyP = (tB/(tB+tS)*100);
                 document.getElementById('buy-sell-per').innerText = `BUY: ${buyP.toFixed(1)}% | SELL: ${(100-buyP).toFixed(1)}%`;
