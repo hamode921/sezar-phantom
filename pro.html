@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>رادار سيزار PRO - حماية الأجهزة</title>
+    <title>رادار سيزار PRO</title>
     <style>
         body { background: #000; color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 10px; }
         .lock-box { border: 2px solid #fbbf24; padding: 30px; text-align: center; background: #050505; margin-top: 15vh; border-radius: 15px; width: 280px; box-shadow: 0 0 20px rgba(251, 191, 36, 0.1); }
@@ -13,77 +13,99 @@
         .header { border: 2px double #fbbf24; padding: 15px; text-align: center; margin-bottom: 20px; }
         .price-box { border: 1px dashed #555; padding: 20px; text-align: center; font-size: 28px; font-weight: bold; margin-bottom: 5px; background: #080808; color: #00d2ff; }
         .row { display: flex; justify-content: space-between; font-size: 14px; padding: 10px 0; border-bottom: 1px solid #111; }
-        .contact-dev { margin-top: 25px; border-top: 1px dashed #444; padding-top: 15px; display: flex; justify-content: space-around; gap: 10px; }
-        .contact-dev a { color: #fbbf24; text-decoration: none; font-size: 11px; }
+        .stats-text { text-align: center; font-size: 14px; margin-bottom: 5px; color: #eee; font-weight: bold; }
+        #timer-box { font-size: 10px; color: #444; margin-bottom: 20px; text-align: center; }
+        #sig-val { padding:15px; text-align:center; font-weight:bold; margin-top:20px; border-radius:5px; }
     </style>
 </head>
 <body>
 
     <div id="auth-screen" class="lock-box">
         <h2 style="color:#fbbf24; margin-bottom:10px;">🔐 سيزار PRO</h2>
-        <p style="font-size: 10px; color: #666;">نظام حماية الأجهزة النشط</p>
         <input type="password" id="pass-key" placeholder="أدخل كود التفعيل">
-        <button onclick="activate()">تفعيل لجهاز واحد</button>
-        <div class="contact-dev">
-            <a href="https://t.me/YOUR_USERNAME" target="_blank">✈️ تليجرام</a>
-            <a href="mailto:support@mail.com">📧 الدعم</a>
-        </div>
+        <button onclick="activate()">دخول النظام</button>
     </div>
 
     <div id="radar-ui">
         <div class="header"><h2>🔭 رادار سيزار PRO</h2><p>[ BTCUSDT ]</p></div>
         <div class="price-box" id="coin-price">Loading...</div>
+        <div id="timer-box">تحديث السيولة خلال: <span id="seconds">30</span> ثانية</div>
+        <div class="stats-text" id="buy-sell-per">BUY: --% | SELL: --%</div>
+        <div id="power-bar" style="text-align:center; margin-bottom:20px; letter-spacing:3px;"></div>
         <div id="s-walls"></div>
         <div id="b-walls" style="margin-top:20px;"></div>
+        <div id="sig-val">ANALYZING...</div>
     </div>
 
     <script>
-        const SYSTEM_VERSION = "PRO_V_SECURE_1"; 
+        const SYSTEM_VERSION = "PRO_V_FINAL_STABLE_99"; 
         const KEYS = ["SZ_01", "SZ_02", "SZ_03", "SZ_04", "SZ_05"];
-        
-        // توليد بصمة بسيطة للجهاز تعتمد على دقة الشاشة ونوع المعالج
-        const deviceFingerprint = window.screen.width + "x" + window.screen.height + navigator.hardwareConcurrency;
+        const SYMBOL = 'BTCUSDT';
+        let timeLeft = 30;
 
         window.onload = function() {
-            const savedKey = localStorage.getItem('active_key');
-            const savedFingerprint = localStorage.getItem('device_id');
-
-            if (savedKey && savedFingerprint === deviceFingerprint) {
+            if (localStorage.getItem('sz_pro_activated') === 'true' && localStorage.getItem('sz_pro_version') === SYSTEM_VERSION) {
                 showRadar();
-            } else if (savedKey && savedFingerprint !== deviceFingerprint) {
-                alert("🔴 تنبيه: هذا الكود مفعل على جهاز آخر!");
+            } else {
                 localStorage.clear();
-                location.reload();
+                document.getElementById('auth-screen').style.display = 'block';
             }
         };
 
         function activate() {
-            const inputKey = document.getElementById('pass-key').value;
-            
-            if (KEYS.includes(inputKey)) {
-                // تخزين الكود وبصمة الجهاز في المتصفح
-                localStorage.setItem('active_key', inputKey);
-                localStorage.setItem('device_id', deviceFingerprint);
-                localStorage.setItem('sz_version', SYSTEM_VERSION);
+            if (KEYS.includes(document.getElementById('pass-key').value)) {
+                localStorage.setItem('sz_pro_activated', 'true');
+                localStorage.setItem('sz_pro_version', SYSTEM_VERSION);
                 showRadar();
-            } else {
-                alert("الكود خطأ!");
-            }
+            } else { alert("الكود خطأ!"); }
         }
 
         function showRadar() {
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('radar-ui').style.display = 'block';
-            updateData();
-            setInterval(updateData, 1000); // تحديث السعر كل ثانية
+            updatePriceOnly();
+            updateLiquidity();
+            setInterval(updatePriceOnly, 1000);
+            setInterval(updateLiquidity, 30000);
+            setInterval(updateTimer, 1000);
         }
 
-        async function updateData() {
+        function updateTimer() {
+            timeLeft--;
+            if (timeLeft < 0) timeLeft = 30;
+            document.getElementById('seconds').innerText = timeLeft;
+        }
+
+        async function updatePriceOnly() {
             try {
-                const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT`);
+                const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${SYMBOL}`);
                 const data = await res.json();
-                document.getElementById('coin-price').innerText = '$' + parseFloat(data.price).toLocaleString();
-                // بقية فنكشن السيولة (نفس القديم)
+                document.getElementById('coin-price').innerText = '$' + parseFloat(data.price).toLocaleString(undefined, {minimumFractionDigits: 2});
+            } catch (e) {}
+        }
+
+        async function updateLiquidity() {
+            timeLeft = 30;
+            try {
+                const res = await fetch(`https://api.binance.com/api/v3/depth?symbol=${SYMBOL}&limit=5000`);
+                const data = await res.json();
+                let bids = data.bids.map(b => ({p: parseFloat(b[0]), liq: parseFloat(b[0]) * parseFloat(b[1])}));
+                let asks = data.asks.map(a => ({p: parseFloat(a[0]), liq: parseFloat(a[0]) * parseFloat(a[1])}));
+                
+                let whaleAsks = [...asks].sort((a,b) => b.liq - a.liq).slice(0, 3).sort((a,b) => a.p - b.p);
+                let whaleBids = [...bids].sort((a,b) => b.liq - a.liq).slice(0, 3).sort((a,b) => b.p - a.p);
+
+                document.getElementById('s-walls').innerHTML = `<div style="color:#ef4444; font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS (30s):</div>` + whaleAsks.map(a => `<div class="row"><span>Vol: ${(a.liq/1000000).toFixed(2)}M</span><span>🎯 $${a.p.toLocaleString()}</span></div>`).join('');
+                document.getElementById('b-walls').innerHTML = `<div style="color:#22c55e; font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS (30s):</div>` + whaleBids.map(b => `<div class="row"><span>Vol: ${(b.liq/1000000).toFixed(2)}M</span><span>🛡️ $${b.p.toLocaleString()}</span></div>`).join('');
+
+                let tB = bids.reduce((s,b)=>s+b.liq,0), tS = asks.reduce((s,a)=>s+a.liq,0);
+                let buyP = (tB/(tB+tS)*100);
+                document.getElementById('buy-sell-per').innerText = `BUY: ${buyP.toFixed(1)}% | SELL: ${(100-buyP).toFixed(1)}%`;
+                document.getElementById('power-bar').innerText = "🟢".repeat(Math.round(buyP/6.6)) + "🔴".repeat(15-Math.round(buyP/6.6));
+                
+                const s = document.getElementById('sig-val');
+                s.innerText = buyP > 50 ? "🟢 SIGNAL: BULLISH" : "🔴 SIGNAL: BEARISH";
+                s.style.background = buyP > 50 ? "#064e3b" : "#450a0a";
             } catch (e) {}
         }
     </script>
