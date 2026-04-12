@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SEZAR-PHANTOM PRO - BTC ONLY</title>
+    <title>SEZAR-PHANTOM PRO</title>
     <style>
         :root { --gold: #fbbf24; --ghost: #a855f7; --bg: #000; --card: #080808; --red: #ef4444; --green: #22c55e; }
         body { background: var(--bg); color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 10px; }
@@ -13,25 +13,27 @@
         .secure-note { color: #888; font-size: 11px; margin-bottom: 15px; line-height: 1.6; }
         input { background: #111; border: 1px solid #333; color: var(--gold); padding: 12px; text-align: center; margin-bottom: 20px; width: 95%; border-radius: 5px; font-size: 18px; outline: none; }
         button { background: var(--gold); color: #000; border: none; padding: 15px; font-weight: bold; cursor: pointer; border-radius: 8px; width: 100%; font-size: 18px; }
-        .auth-links { display: flex; justify-content: space-around; width: 100%; border-top: 1px solid #222; padding-top: 15px; margin-top: 15px; }
+        
+        .auth-links { display: flex; justify-content: space-around; width: 100%; border-top: 1px solid #222; padding-top: 15px; }
         .auth-links a { color: var(--gold); text-decoration: none; font-size: 10px; border: 1px solid var(--gold); padding: 5px 10px; border-radius: 4px; font-weight: bold; }
 
         #radar-ui { display: none; width: 100%; max-width: 450px; padding-bottom: 80px; }
         .header { border: 1px solid var(--gold); padding: 5px; text-align: center; margin-bottom: 15px; border-radius: 5px; }
         .header h2 { margin: 0; font-size: 16px; color: var(--gold); letter-spacing: 2px; }
         .header p { margin: 0; font-size: 11px; color: #ffffff !important; font-weight: bold; }
-        .price-box { border: 1px dashed #555; padding: 15px; text-align: center; font-size: 32px; font-weight: 900; background: #0a0a0a; color: #00d2ff; }
-        .timer-text { text-align:center; font-size:10px; color: var(--gold); margin-bottom: 12px; }
+
+        .price-box { border: 1px dashed #555; padding: 15px; text-align: center; font-size: 32px; font-weight: 900; margin-bottom: 5px; background: #0a0a0a; color: #00d2ff; }
+        .timer-text { text-align:center; font-size:10px; color: var(--gold); margin-bottom: 12px; font-weight: bold; }
+        
         #buy-sell-per { text-align:center; font-weight:bold; margin-bottom:5px; font-size: 14px; }
         #power-bar { text-align:center; margin-bottom:20px; letter-spacing:3px; display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; }
         .ball { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+
         .ice-card { background: var(--card); border: 1px solid var(--ghost); padding: 15px; border-radius: 12px; margin-top: 20px; width: 100%; box-sizing: border-box; }
         .ice-title { font-size: 11px; color: var(--ghost); margin-bottom: 10px; display: flex; justify-content: space-between; font-weight: bold; }
         .row { display: flex; justify-content: space-between; padding: 12px 5px; border-bottom: 1px solid #111; font-size: 13px; }
-        #sig-box { text-align: center; font-weight: bold; padding: 15px; margin-top: 30px; border-radius: 5px; font-size: 16px; width: 100%; }
-        .sig-bullish { background: #064e3b; color: #22c55e; border: 1px solid #22c55e; }
-        .sig-bearish { background: #450a0a; color: #ef4444; border: 1px solid #ef4444; }
-        .contact-dev { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); padding: 15px 0; display: flex; justify-content: space-around; border-top: 1px solid #222; }
+        
+        .contact-dev { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); padding: 15px 0; display: flex; justify-content: space-around; border-top: 1px solid #222; z-index: 100; }
         .contact-dev a { color: var(--gold); text-decoration: none; font-size: 11px; border: 1px solid var(--gold); padding: 8px 16px; border-radius: 5px; font-weight: bold; }
     </style>
 </head>
@@ -39,7 +41,7 @@
 
     <div id="auth-screen" class="lock-box">
         <div class="lock-header">🔒 تفعيل SEZAR-PHANTOM PRO</div>
-        <div class="secure-note">هذا الرمز يعمل على جهاز واحد فقط<br>ولا يعمل على جهاز غيره نهائياً</div>
+        <div class="secure-note">هذا الكود يعمل على جهاز واحد فقط<br>ولا يعمل على غيره نهائياً</div>
         <input type="password" id="pass-key" placeholder="•••••">
         <button onclick="activate()">تسجيل دخول</button>
         <div class="auth-links">
@@ -63,7 +65,6 @@
             </div>
             <div id="iceberg-list"></div>
         </div>
-        <div id="sig-box">ANALYZING...</div>
         <div class="contact-dev"><a href="https://t.me/se44se" target="_blank">✈️ تليجرام</a><a href="mailto:sezarphantom@gmail.com">📧 الإيميل</a></div>
     </div>
 
@@ -74,26 +75,20 @@
 
         function speak(text) {
             if (!audioEnabled) return;
-            window.speechSynthesis.cancel(); 
+            window.speechSynthesis.cancel();
             const msg = new SpeechSynthesisUtterance(text);
             msg.lang = 'en-US'; msg.rate = 1.3;
             window.speechSynthesis.speak(msg);
         }
 
-        function checkAuth() { if (localStorage.getItem('sz_btc_only_auth') === 'true') { showRadar(); } }
-        
+        function checkAuth() { if (localStorage.getItem('sezar_btc_auth') === 'true') { showRadar(); } }
         function activate() {
-            speak("System Activated");
+            speak("System Online");
             if (KEYS.includes(document.getElementById('pass-key').value)) {
-                localStorage.setItem('sz_btc_only_auth', 'true');
-                showRadar();
+                localStorage.setItem('sezar_btc_auth', 'true'); showRadar();
             } else { alert("الكود خطأ!"); }
         }
-
-        function toggleAudio() { 
-            audioEnabled = !audioEnabled; 
-            document.getElementById('audio-status').innerText = audioEnabled ? "🔊 نطق: مفعل" : "🔇 نطق: صامت";
-        }
+        function toggleAudio() { audioEnabled = !audioEnabled; document.getElementById('audio-status').innerText = audioEnabled ? "🔊 نطق: مفعل" : "🔇 نطق: صامت"; }
 
         function showRadar() {
             document.getElementById('auth-screen').style.display = 'none';
@@ -121,15 +116,16 @@
                 let tB = bids.reduce((s,b)=>s+b.liq,0), tS = asks.reduce((s,a)=>s+a.liq,0);
                 let buyP = (tB/(tB+tS)*100), sellP = 100 - buyP;
                 document.getElementById('buy-sell-per').innerText = `BUY: ${buyP.toFixed(1)}% | SELL: ${sellP.toFixed(1)}%`;
-                let buyCount = Math.round(buyP / 6.6), sellCount = 15 - buyCount;
-                document.getElementById('power-bar').innerHTML = '<div class="ball" style="background:var(--red)"></div>'.repeat(sellCount) + '<div class="ball" style="background:var(--green)"></div>'.repeat(buyCount);
-                const sig = document.getElementById('sig-box');
-                sig.innerText = buyP > 50 ? "🟢 SIGNAL: BULLISH" : "🔴 SIGNAL: BEARISH";
-                sig.className = buyP > 50 ? "sig-bullish" : "sig-bearish";
+                let bCount = Math.round(buyP / 6.6), sCount = 15 - bCount;
+                document.getElementById('power-bar').innerHTML = '<div class="ball" style="background:var(--red)"></div>'.repeat(sCount) + '<div class="ball" style="background:var(--green)"></div>'.repeat(bCount);
+
                 let whaleAsks = [...asks].sort((a,b) => b.liq - a.liq).slice(0, 3).sort((a,b) => a.p - b.p);
-                document.getElementById('s-walls').innerHTML = `<div style="color:var(--red); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS (30s):</div>` + whaleAsks.map(a => `<div class="row"><span>Vol: ${(a.liq/1000000).toFixed(2)}M</span><span style="color:var(--gold); font-size:10px;">${((a.liq/tS)*100).toFixed(2)}%</span><span>$${a.p.toLocaleString()}</span></div>`).join('');
+                document.getElementById('s-walls').innerHTML = `<div style="color:var(--red); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS (30s):</div>` + 
+                whaleAsks.map(a => `<div class="row"><span>Vol: ${(a.liq/1000000).toFixed(2)}M</span><span style="color:var(--gold); font-size:10px;">${((a.liq/tS)*100).toFixed(2)}%</span><span>$${a.p.toLocaleString()}</span></div>`).join('');
+                
                 let whaleBids = [...bids].sort((a,b) => b.liq - a.liq).slice(0, 3).sort((a,b) => a.p - b.p);
-                document.getElementById('b-walls').innerHTML = `<div style="color:var(--green); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS (30s):</div>` + whaleBids.map(b => `<div class="row"><span>Vol: ${(b.liq/1000000).toFixed(2)}M</span><span style="color:var(--gold); font-size:10px;">${((b.liq/tB)*100).toFixed(2)}%</span><span>$${b.p.toLocaleString()}</span></div>`).join('');
+                document.getElementById('b-walls').innerHTML = `<div style="color:var(--green); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS (30s):</div>` + 
+                whaleBids.map(b => `<div class="row"><span>Vol: ${(b.liq/1000000).toFixed(2)}M</span><span style="color:var(--gold); font-size:10px;">${((b.liq/tB)*100).toFixed(2)}%</span><span>$${b.p.toLocaleString()}</span></div>`).join('');
             } catch (e) {}
         }
 
