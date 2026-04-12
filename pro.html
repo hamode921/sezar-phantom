@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -9,7 +8,6 @@
         :root { --gold: #fbbf24; --ghost: #a855f7; --bg: #000; --card: #080808; --red: #ef4444; --green: #22c55e; }
         body { background: var(--bg); color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 10px; }
         
-        /* واجهة القفل */
         .lock-box { border: 2px solid var(--gold); padding: 30px; text-align: center; background: #000; margin-top: 15vh; border-radius: 15px; width: 300px; }
         .lock-header { color: var(--gold); font-size: 14px; font-weight: bold; margin-bottom: 20px; direction: ltr; }
         .secure-note { color: #888; font-size: 11px; margin-bottom: 15px; line-height: 1.6; }
@@ -26,7 +24,6 @@
         .price-box { border: 1px dashed #555; padding: 15px; text-align: center; font-size: 32px; font-weight: 900; margin-bottom: 5px; background: #0a0a0a; color: #00d2ff; }
         .timer-text { text-align:center; font-size:10px; color: var(--gold); margin-bottom: 12px; font-weight: bold; }
         
-        /* رجوع الكرات جنب بعض */
         #buy-sell-per { text-align:center; font-weight:bold; margin-bottom:5px; font-size: 14px; }
         #power-bar { text-align:center; margin-bottom:20px; letter-spacing:3px; display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; }
         .ball { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
@@ -66,7 +63,10 @@
         
         <div id="s-walls"></div>
         <div id="b-walls" style="margin-top:20px;"></div>
-        <div class="ice-card"><div class="ice-title"><span>ICEBERG DETECTOR (+20K)</span><span id="ice-status" style="background:#064e3b; color:#22c55e; padding:2px 5px; border-radius:3px;">ACTIVE</span></div><div id="iceberg-list"></div></div>
+        <div class="ice-card">
+            <div class="ice-title"><span>ICEBERG DETECTOR (+50K)</span><span id="ice-status" style="background:#064e3b; color:#22c55e; padding:2px 5px; border-radius:3px;">BOTS & WHALES</span></div>
+            <div id="iceberg-list"></div>
+        </div>
         <div id="sig-box">ANALYZING...</div>
         <div class="contact-dev"><a href="https://t.me/se44se">✈️ تليجرام</a><a href="mailto:sezarphantom@gmail.com">📧 الإيميل</a></div>
     </div>
@@ -143,11 +143,13 @@
                 let found = [];
                 if (lastBids.length > 0 && bids[0][0] === lastBids[0][0]) {
                     let d = parseFloat(bids[0][1]) - parseFloat(lastBids[0][1]);
-                    let amt = d * bids[0][0]; if (amt > 20000) found.push({p: bids[0][0], m: amt, t: 'Buyer'});
+                    let amt = d * bids[0][0]; 
+                    if (amt > 50000) found.push({p: bids[0][0], m: amt, t: 'Buyer'}); // فلتر +50K
                 }
                 if (lastAsks.length > 0 && asks[0][0] === lastAsks[0][0]) {
                     let d = parseFloat(asks[0][1]) - parseFloat(lastAsks[0][1]);
-                    let amt = d * asks[0][0]; if (amt > 20000) found.push({p: asks[0][0], m: amt, t: 'Seller'});
+                    let amt = d * asks[0][0]; 
+                    if (amt > 50000) found.push({p: asks[0][0], m: amt, t: 'Seller'}); // فلتر +50K
                 }
                 if(found.length > 0) {
                     const list = document.getElementById('iceberg-list');
