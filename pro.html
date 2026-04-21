@@ -59,15 +59,17 @@
         .sig-bullish { background: #064e3b; color: #22c55e; border: 1px solid #22c55e; }
         .sig-bearish { background: #450a0a; color: #ef4444; border: 1px solid #ef4444; }
 
-        /* ستايلات القناص المطور */
         .nav-tabs { display: flex; gap: 10px; width: 95%; margin-bottom: 20px; }
         .tab-btn { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--gold); background: #000; color: var(--gold); font-weight: bold; cursor: pointer; }
         .tab-btn.active { background: var(--gold); color: #000; }
         
         .scan-item { background: #080808; border: 1px solid #222; padding: 15px; border-radius: 15px; margin-bottom: 10px; border-left: 4px solid var(--ghost); display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
-        .scan-item.spike { border-color: var(--green); box-shadow: 0 0 15px rgba(34, 197, 94, 0.3); animation: blink 1s infinite; }
+        .scan-item.spike { border-color: var(--green); box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); animation: blink 1s infinite; }
         
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+        @keyframes blink { 0% { background: #080808; } 50% { background: #062010; } 100% { background: #080808; } }
+
+        .bold-tag { background: var(--green); color: #000; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; animation: pulse 0.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
         .contact-dev { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); padding: 15px 0; display: flex; justify-content: space-around; border-top: 1px solid #222; z-index: 100; }
         .contact-dev a { color: var(--gold); text-decoration: none; font-size: 11px; border: 1px solid var(--gold); padding: 8px 16px; border-radius: 5px; font-weight: bold; }
@@ -158,7 +160,7 @@
 
     let currentSymbol = 'BTCUSDT', currentMode = 'spot', allCoins = [], timeLeft = 30, currentPrice = 0, lastBids = [], lastAsks = [], pInt, lInt, iInt, tInt, scanInt;
     let sigBuffer = { buy: 0, sell: 0 };
-    let lastVolMap = new Map(); // لتخزين الفوليوم السابق وحساب الانفجار
+    let lastVolMap = new Map();
 
     function setZoom(scale) { const container = document.getElementById('zoom-container'); container.style.transform = `scale(${scale})`; container.style.width = (100 / scale) + '%'; }
 
@@ -166,7 +168,7 @@
         document.getElementById('search-screen').style.display = tab === 'search' ? 'block' : 'none';
         document.getElementById('scanner-screen').style.display = tab === 'scanner' ? 'block' : 'none';
         document.getElementById('radar-ui').style.display = tab === 'radar' ? 'block' : 'none';
-        if(tab === 'scanner') { updateScanner(); if(!scanInt) scanInt = setInterval(updateScanner, 5000); } // تحديث أسرع للصيد
+        if(tab === 'scanner') { updateScanner(); if(!scanInt) scanInt = setInterval(updateScanner, 5000); }
         else { clearInterval(scanInt); scanInt = null; }
     }
 
@@ -230,16 +232,14 @@
         });
     }
 
-    // --- خوارزمية القناص الاستباقي (Pre-Spike Algorithm) ---
+    // --- خوارزمية القلب الحديدي (Pre-Spike Flow) ---
     async function updateScanner() {
         try {
             const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
             const data = await res.json();
-            
             const list = document.getElementById('scanner-list');
             list.innerHTML = '';
 
-            // تصفية العملات النشطة وترتيبها حسب الانفجار اللحظي
             let candidates = data.filter(c => c.symbol.endsWith('USDT'))
                 .map(c => {
                     const currentVol = parseFloat(c.quoteVolume);
@@ -249,24 +249,24 @@
                     return { ...c, volIncrease };
                 })
                 .sort((a,b) => b.volIncrease - a.volIncrease)
-                .slice(0, 10);
+                .slice(0, 15);
 
             candidates.forEach(c => {
                 const change = parseFloat(c.priceChangePercent);
-                // تفعيل الوميض لو زاد الفوليوم اللحظي بشكل مفاجئ (أكبر من 2%) خلال 5 ثواني
-                const isSpike = c.volIncrease > 2; 
+                const isSpike = c.volIncrease > 1.5; 
+                // شرط القلب الحديدي: زيادة فوليوم قوية + صعود لسه في بدايته (بين 5% و 20%)
+                const isBoldEntry = isSpike && (change > 5 && change < 20);
 
                 const item = document.createElement('div');
                 item.className = `scan-item ${isSpike ? 'spike' : ''}`;
                 item.innerHTML = `
                     <div style="text-align:right">
-                        <div style="color:var(--gold); font-weight:bold; font-size:16px;">
+                        <div style="color:var(--gold); font-weight:bold; font-size:16px; display:flex; align-items:center;">
                             ${isSpike ? '🔥 ' : ''}${c.symbol}
+                            ${isBoldEntry ? '<span class="bold-tag">BOLD ENTRY 🔥</span>' : ''}
                         </div>
                         <div style="color:${change > 0 ? 'var(--green)' : 'var(--red)'}; font-size:12px;">CHANGE: ${change}%</div>
-                        <div style="color:${isSpike ? 'var(--green)' : '#555'}; font-size:10px;">
-                            VOL SPIKE: +${c.volIncrease.toFixed(2)}%
-                        </div>
+                        <div style="color:${isSpike ? 'var(--green)' : '#555'}; font-size:10px;">FLOW: +${c.volIncrease.toFixed(2)}%</div>
                     </div>
                     <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--ghost); color:#fff; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">قنص 🎯</button>
                 `;
