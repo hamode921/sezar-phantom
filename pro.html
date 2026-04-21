@@ -6,7 +6,7 @@
     
     <div style="padding: 10px 0;">
         <input type="range" id="ice-sensitivity" min="1000" max="100000" step="1000" value="50000" 
-               style="width: 100%; accent-color: var(--ghost); cursor: pointer;"
+               style="width: 100%; accent-color: #4c1d95; cursor: pointer;"
                oninput="document.getElementById('ice-threshold-display').innerText = (this.value >= 1000 ? (this.value/1000).toFixed(0) + 'K' : this.value)">
     </div>
 
@@ -14,6 +14,10 @@
 </div>
 
 <script>
+// تعريف المتغيرات خارج الدالة عشان ما يضرب الكود
+let lastBids = [];
+let lastAsks = [];
+
 async function updateIceberg() {
     try {
         const url = currentMode === 'futures' ? `https://fapi.binance.com/fapi/v1/depth?symbol=${currentSymbol}&limit=5` : `https://api.binance.com/api/v3/depth?symbol=${currentSymbol}&limit=5`;
@@ -22,30 +26,41 @@ async function updateIceberg() {
         let bids = data.bids, asks = data.asks;
         let found = [];
 
-        // جلب قيمة الحساسية من السلايدر
         const sensitivity = parseInt(document.getElementById('ice-sensitivity').value);
 
         if (lastBids.length > 0 && bids[0][0] === lastBids[0][0]) {
             let d = parseFloat(bids[0][1]) - parseFloat(lastBids[0][1]);
             let amt = d * bids[0][0]; 
-            if (amt > sensitivity) found.push({p: bids[0][0], m: amt, t: 'Buyer'}); // المقارنة بالسلايدر
+            if (amt > sensitivity) found.push({p: bids[0][0], m: amt, t: 'Buyer'});
         }
         if (lastAsks.length > 0 && asks[0][0] === lastAsks[0][0]) {
             let d = parseFloat(asks[0][1]) - parseFloat(lastAsks[0][1]);
             let amt = d * asks[0][0]; 
-            if (amt > sensitivity) found.push({p: asks[0][0], m: amt, t: 'Seller'}); // المقارنة بالسلايدر
+            if (amt > sensitivity) found.push({p: asks[0][0], m: amt, t: 'Seller'});
         }
         
         if(found.length > 0) {
             const list = document.getElementById('iceberg-list');
             found.forEach(ice => {
-                const row = document.createElement('div'); row.className = 'row';
+                const row = document.createElement('div'); 
+                row.style.display = "flex";
+                row.style.justifyContent = "space-between";
+                row.style.fontSize = "12px";
+                row.style.marginBottom = "5px";
+                
                 const mVal = ice.m >= 1000000 ? (ice.m/1000000).toFixed(2) + "M" : (ice.m/1000).toFixed(1) + "K";
-                row.innerHTML = `<span style="color:${ice.t==='Buyer'?'var(--green)':'var(--red)'}">${ice.t.toUpperCase()}</span><span style="color:var(--gold)">$${mVal}</span><span>$${parseFloat(ice.p).toLocaleString()}</span>`;
-                list.prepend(row); if (list.children.length > 5) list.removeChild(list.lastChild);
+                row.innerHTML = `<span style="color:${ice.t==='Buyer'?'#00ff00':'#ff0000'}">${ice.t.toUpperCase()}</span><span style="color:#ffd700">$${mVal}</span><span style="color:#fff">$${parseFloat(ice.p).toLocaleString()}</span>`;
+                list.prepend(row); 
+                if (list.children.length > 5) list.removeChild(list.lastChild);
             });
         }
-        lastBids = bids; lastAsks = asks;
-    } catch (e) {}
+        lastBids = bids; 
+        lastAsks = asks;
+    } catch (e) {
+        console.log("Error:", e);
+    }
 }
+
+// تشغيل الدالة كل ثانيتين مثلاً
+setInterval(updateIceberg, 2000);
 </script>
