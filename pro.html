@@ -8,101 +8,42 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <style>
         :root { --gold: #fbbf24; --ghost: #a855f7; --bg: #000; --card: #080808; --red: #ef4444; --green: #22c55e; }
-        
-        /* إضافة ميزة السحب الجانبي عند التصغير دون تغيير الستايل */
         #zoom-wrapper { width: 100vw; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-
-        /* حاوية الزوم البرمجية */
-        #zoom-container {
-            transition: transform 0.3s ease;
-            transform-origin: top center;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* ستايل الأزرار الصغيرة بجانب الكلمات */
-        .inline-btn {
-            background: rgba(251, 191, 36, 0.1);
-            border: 1px solid var(--gold);
-            color: var(--gold);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 10px;
-            cursor: pointer;
-            vertical-align: middle;
-            margin: 0 5px;
-        }
-
+        #zoom-container { transition: transform 0.3s ease; transform-origin: top center; width: 100%; display: flex; flex-direction: column; align-items: center; }
+        .inline-btn { background: rgba(251, 191, 36, 0.1); border: 1px solid var(--gold); color: var(--gold); padding: 2px 6px; border-radius: 4px; font-size: 10px; cursor: pointer; vertical-align: middle; margin: 0 5px; }
         body { background: var(--bg); color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 10px; overflow-x: hidden; }
-        
         .lock-box { border: 2px solid var(--gold); padding: 30px; text-align: center; background: #000; margin-top: 15vh; border-radius: 15px; width: 300px; }
         .secure-note { color: #888; font-size: 11px; margin-bottom: 15px; line-height: 1.6; }
         input.pass { background: #111; border: 1px solid #333; color: var(--gold); padding: 12px; text-align: center; margin-bottom: 20px; width: 95%; outline: none; border-radius: 5px; font-size: 18px; }
         button.login-btn { background: var(--gold); color: #000; border: none; padding: 15px; font-weight: bold; cursor: pointer; border-radius: 8px; width: 100%; font-size: 18px; margin-bottom: 20px; }
-
         #search-screen { display: none; width: 100%; max-width: 450px; text-align: center; margin-top: 20px; }
         .sezar-brand { margin-bottom: 30px; }
         .sezar-brand .sub-text { font-size: 28px; font-weight: bold; color: var(--gold); text-shadow: 0 0 15px rgba(251, 191, 36, 0.5); }
         .search-input { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 18px; width: 95%; border-radius: 15px; font-size: 16px; outline: none; text-align: center; margin-bottom: 30px; }
         .coin-item { background: #080808; border: 1px solid #222; padding: 15px; border-radius: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .coin-type { font-size: 9px; padding: 2px 5px; border-radius: 3px; margin-right: 5px; }
-
         #radar-ui { display: none; width: 100%; max-width: 450px; padding-bottom: 80px; position: relative; }
         .header { border: 1px solid var(--gold); padding: 5px; text-align: center; margin-bottom: 15px; border-radius: 5px; position: relative; }
         .back-btn { position: absolute; left: 8px; top: 8px; background: var(--gold); color: #000; border: none; padding: 4px 10px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer; }
-
         .price-box { border: 1px dashed #555; padding: 15px; text-align: center; font-size: 32px; font-weight: 900; margin-bottom: 5px; background: #0a0a0a; color: #00d2ff; }
-        
         #chart-container { width: 100%; height: 350px; border: 1px solid #222; border-radius: 10px; background: #000; margin: 15px 0; overflow: hidden; position: relative; }
         #chart-frame { width: 100%; height: 100%; border: none; }
-
         .chart-wall-line { position: absolute; left: 0; width: 100%; height: 2px; z-index: 10; pointer-events: none; transition: top 0.3s ease; }
-        
-        #sell-wall-line .wall-label { 
-            position: absolute; 
-            right: 80px; 
-            top: -18px; 
-            font-size: 9px; 
-            font-weight: bold; 
-            padding: 2px 5px; 
-            border-radius: 3px; 
-            background: rgba(0,0,0,0.85); 
-            border: 1px solid currentColor; 
-            white-space: nowrap;
-        }
-
-        #buy-wall-line .wall-label { 
-            position: absolute; 
-            right: 80px; 
-            top: 2px; 
-            font-size: 9px; 
-            font-weight: bold; 
-            padding: 2px 5px; 
-            border-radius: 3px; 
-            background: rgba(0,0,0,0.85); 
-            border: 1px solid currentColor; 
-            white-space: nowrap;
-        }
-
+        #sell-wall-line .wall-label { position: absolute; right: 80px; top: -18px; font-size: 9px; font-weight: bold; padding: 2px 5px; border-radius: 3px; background: rgba(0,0,0,0.85); border: 1px solid currentColor; white-space: nowrap; }
+        #buy-wall-line .wall-label { position: absolute; right: 80px; top: 2px; font-size: 9px; font-weight: bold; padding: 2px 5px; border-radius: 3px; background: rgba(0,0,0,0.85); border: 1px solid currentColor; white-space: nowrap; }
         .timer-text { text-align:center; font-size:10px; color: var(--gold); margin-bottom: 12px; font-weight: bold; }
         #buy-sell-per { text-align:center; font-weight:bold; margin-bottom:10px; font-size: 14px; }
         #power-bar { text-align:center; margin-bottom:20px; display: flex; justify-content: center; gap: 4px; }
         .ball { width: 12px; height: 12px; border-radius: 50%; }
-
         .row { display: flex; justify-content: space-between; padding: 12px 5px; border-bottom: 1px solid #111; font-size: 13px; font-weight: bold; }
         .perc-tag { color: var(--gold); font-size: 10px; background: rgba(251, 191, 36, 0.1); padding: 2px 8px; border-radius: 10px; }
         .ice-card { background: var(--card); border: 1px solid var(--ghost); padding: 15px; border-radius: 12px; margin-top: 20px; width: 100%; box-sizing: border-box; }
-        
         .ai-signal-box { background: linear-gradient(45deg, #080808, #111); border: 1px double var(--gold); border-radius: 10px; padding: 15px; margin: 15px 0; text-align: center; box-shadow: 0 0 15px rgba(251, 191, 36, 0.1); }
         #ai-decision { font-size: 18px; font-weight: 900; margin: 5px 0; }
         .ai-meta { display: flex; justify-content: space-around; font-size: 10px; color: #888; margin-top: 5px; }
-
         #sig-box { text-align: center; font-weight: bold; padding: 15px; margin-top: 30px; border-radius: 5px; font-size: 16px; }
         .sig-bullish { background: #064e3b; color: #22c55e; border: 1px solid #22c55e; }
         .sig-bearish { background: #450a0a; color: #ef4444; border: 1px solid #ef4444; }
-
         .contact-dev { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); padding: 15px 0; display: flex; justify-content: space-around; border-top: 1px solid #222; z-index: 100; }
         .contact-dev a { color: var(--gold); text-decoration: none; font-size: 11px; border: 1px solid var(--gold); padding: 8px 16px; border-radius: 5px; font-weight: bold; }
         #error-msg { color: var(--red); font-size: 12px; margin-top: 10px; display: none; font-weight: bold; }
@@ -137,34 +78,24 @@
                 <p id="current-coin-name" style="font-size:11px; margin:0;">[ BTCUSDT ]</p>
             </div>
             <div class="price-box" id="coin-price">Loading...</div>
-
             <div id="chart-container">
                 <iframe id="chart-frame" src=""></iframe>
                 <div id="sell-wall-line" class="chart-wall-line" style="background: var(--red); display: none;"><span class="wall-label" style="color: var(--red);">SELL: <span id="sw-vol"></span></span></div>
                 <div id="buy-wall-line" class="chart-wall-line" style="background: var(--green); display: none;"><span class="wall-label" style="color: var(--green);">BUY: <span id="bw-vol"></span></span></div>
             </div>
-
             <div class="timer-text">تحديث السيولة خلال: <span id="timer">30</span> ثانية</div>
-            
             <div id="buy-sell-per">
                 <button class="inline-btn" onclick="setZoom(0.6)">-</button>
                 <span id="buy-sell-display">BUY: --% | SELL: --%</span>
                 <button class="inline-btn" onclick="setZoom(1.0)">🏠</button>
             </div>
-
             <div id="power-bar"></div>
-            
             <div id="s-walls"></div>
-
             <div class="ai-signal-box">
                 <div style="font-size:11px;color:var(--gold);font-weight:bold;border-bottom:1px solid #222;padding-bottom:5px;margin-bottom:8px;">🤖 CAESAR SIGNAL AI</div>
                 <div id="ai-decision">ANALYZING...</div>
-                <div class="ai-meta">
-                    <span>TARGET: <span id="ai-target">--</span></span>
-                    <span>ACCURACY: <span id="ai-conf">--</span></span>
-                </div>
+                <div class="ai-meta"><span>TARGET: <span id="ai-target">--</span></span><span>ACCURACY: <span id="ai-conf">--</span></span></div>
             </div>
-
             <div id="b-walls" style="margin-top:20px;"></div>
 
             <div class="ice-card">
@@ -181,107 +112,39 @@
             </div>
 
             <div id="sig-box">ANALYZING...</div>
-            <div class="contact-dev"><a href="https://t.me/se44se" target="_blank">✈️ تليجرام</a><a href="mailto:sezarphantom@gmail.com">📧 الإيميل</a></div>
         </div>
     </div>
 </div>
 
+<div class="contact-dev"><a href="https://t.me/se44se" target="_blank">✈️ تليجرام</a><a href="mailto:sezarphantom@gmail.com">📧 الإيميل</a></div>
+
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAzEZksgZMPbY79K_TM3mHKeW1shQ6V-lY",
-            authDomain: "sezar-phantom-auth.firebaseapp.com",
-            projectId: "sezar-phantom-auth",
-            storageBucket: "sezar-phantom-auth.firebasestorage.app",
-            messagingSenderId: "112991314655",
-            appId: "1:112991314655:web:cbca0b5c0c6b6e4f51ff6a"
-        };
+        const firebaseConfig = { apiKey: "AIzaSyAzEZksgZMPbY79K_TM3mHKeW1shQ6V-lY", authDomain: "sezar-phantom-auth.firebaseapp.com", projectId: "sezar-phantom-auth", storageBucket: "sezar-phantom-auth.firebasestorage.app", messagingSenderId: "112991314655", appId: "1:112991314655:web:cbca0b5c0c6b6e4f51ff6a" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
         let currentSymbol = 'BTCUSDT', currentMode = 'spot', allCoins = [], timeLeft = 30, currentPrice = 0, lastBids = [], lastAsks = [], pInt, lInt, iInt, tInt;
-        
         let sigBuffer = { buy: 0, sell: 0 };
 
-        function setZoom(scale) {
-            const container = document.getElementById('zoom-container');
-            container.style.transform = `scale(${scale})`;
-            container.style.width = (100 / scale) + '%';
-        }
-
-        async function checkAuth() {
-            const savedKey = localStorage.getItem('sz_ultimate_v1_key');
-            const myId = localStorage.getItem('sz_device_id');
-            if (savedKey && myId) {
-                const doc = await db.collection("users").doc(savedKey).get();
-                if (doc.exists) {
-                    const data = doc.data();
-                    if (data.expiryDate && new Date() > new Date(data.expiryDate)) { localStorage.clear(); location.reload(); return; }
-                    if (data.deviceId && data.deviceId !== myId) { localStorage.clear(); location.reload(); } else { showSearch(); }
-                }
-            }
-        }
-
-        async function activate() { 
-            const k = document.getElementById('pass-key').value;
-            const err = document.getElementById('error-msg');
-            err.style.display = 'none';
-            if(!k) return;
-            const doc = await db.collection("users").doc(k).get();
-            if (doc.exists) { 
-                const data = doc.data();
-                if (data.expiryDate && new Date() > new Date(data.expiryDate)) { err.innerText = "❌ منتهي!"; err.style.display = 'block'; return; }
-                let myId = localStorage.getItem('sz_device_id') || 'DEV-' + Math.random().toString(36).substr(2, 9);
-                localStorage.setItem('sz_device_id', myId);
-                if (data.deviceId && data.deviceId !== myId) { err.innerText = "⚠️ جهاز آخر!"; err.style.display = 'block'; return; }
-                if (!data.deviceId) await db.collection("users").doc(k).update({ deviceId: myId });
-                localStorage.setItem('sz_ultimate_v1_key', k); showSearch(); 
-            } else { err.innerText = "❌ الكود خطأ!"; err.style.display = 'block'; }
-        }
-        
-        async function showSearch() {
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('search-screen').style.display = 'block';
-            document.getElementById('radar-ui').style.display = 'none';
-            stopIntervals();
-            if (allCoins.length === 0) {
-                const [spotRes, futRes] = await Promise.all([
-                    fetch('https://api.binance.com/api/v3/exchangeInfo'),
-                    fetch('https://fapi.binance.com/fapi/v1/exchangeInfo')
-                ]);
-                const spotData = await spotRes.json();
-                const futData = await futRes.json();
-                let spotList = spotData.symbols.filter(s => s.status === 'TRADING' && s.symbol.endsWith('USDT')).map(s => ({s: s.symbol, m: 'spot'}));
-                let futList = futData.symbols.filter(s => s.status === 'TRADING' && s.contractType === 'PERPETUAL').map(s => ({s: s.symbol, m: 'futures'}));
-                allCoins = [...spotList, ...futList];
-            }
-            searchCoins();
-        }
-
-        function searchCoins() {
-            const query = document.getElementById('search-input').value.toUpperCase();
-            const list = document.getElementById('results-list');
-            list.innerHTML = '';
-            let uniqueCoins = {};
-            allCoins.filter(c => c.s.includes(query)).forEach(c => { if (!uniqueCoins[c.s] || c.m === 'futures') uniqueCoins[c.s] = c; });
-            Object.values(uniqueCoins).slice(0, 15).forEach(c => {
-                const item = document.createElement('div');
-                item.className = 'coin-item';
-                const color = c.m === 'futures' ? '#f0b90b' : '#00ffcc';
-                item.innerHTML = `<div><span class="coin-type" style="border:1px solid ${color}; color:${color}">${c.m.toUpperCase()}</span><span style="font-weight:bold;">${c.s}</span></div><div style="color:var(--gold); font-size:11px;">تحليل 🔭</div>`;
-                item.onclick = () => startRadar(c.s, c.m);
-                list.appendChild(item);
-            });
-        }
+        function setZoom(scale) { const container = document.getElementById('zoom-container'); container.style.transform = `scale(${scale})`; container.style.width = (100 / scale) + '%'; }
+        async function checkAuth() { const savedKey = localStorage.getItem('sz_ultimate_v1_key'); const myId = localStorage.getItem('sz_device_id'); if (savedKey && myId) { const doc = await db.collection("users").doc(savedKey).get(); if (doc.exists) { const data = doc.data(); if (data.expiryDate && new Date() > new Date(data.expiryDate)) { localStorage.clear(); location.reload(); return; } if (data.deviceId && data.deviceId !== myId) { localStorage.clear(); location.reload(); } else { showSearch(); } } } }
+        async function activate() { const k = document.getElementById('pass-key').value; const err = document.getElementById('error-msg'); err.style.display = 'none'; if(!k) return; const doc = await db.collection("users").doc(k).get(); if (doc.exists) { const data = doc.data(); if (data.expiryDate && new Date() > new Date(data.expiryDate)) { err.innerText = "❌ منتهي!"; err.style.display = 'block'; return; } let myId = localStorage.getItem('sz_device_id') || 'DEV-' + Math.random().toString(36).substr(2, 9); localStorage.setItem('sz_device_id', myId); if (data.deviceId && data.deviceId !== myId) { err.innerText = "⚠️ جهاز آخر!"; err.style.display = 'block'; return; } if (!data.deviceId) await db.collection("users").doc(k).update({ deviceId: myId }); localStorage.setItem('sz_ultimate_v1_key', k); showSearch(); } else { err.innerText = "❌ الكود خطأ!"; err.style.display = 'block'; } }
+        async function showSearch() { document.getElementById('auth-screen').style.display = 'none'; document.getElementById('search-screen').style.display = 'block'; document.getElementById('radar-ui').style.display = 'none'; stopIntervals(); if (allCoins.length === 0) { const [spotRes, futRes] = await Promise.all([ fetch('https://api.binance.com/api/v3/exchangeInfo'), fetch('https://fapi.binance.com/fapi/v1/exchangeInfo') ]); const spotData = await spotRes.json(); const futData = await futRes.json(); let spotList = spotData.symbols.filter(s => s.status === 'TRADING' && s.symbol.endsWith('USDT')).map(s => ({s: s.symbol, m: 'spot'})); let futList = futData.symbols.filter(s => s.status === 'TRADING' && s.contractType === 'PERPETUAL').map(s => ({s: s.symbol, m: 'futures'})); allCoins = [...spotList, ...futList]; } searchCoins(); }
+        function searchCoins() { const query = document.getElementById('search-input').value.toUpperCase(); const list = document.getElementById('results-list'); list.innerHTML = ''; let uniqueCoins = {}; allCoins.filter(c => c.s.includes(query)).forEach(c => { if (!uniqueCoins[c.s] || c.m === 'futures') uniqueCoins[c.s] = c; }); Object.values(uniqueCoins).slice(0, 15).forEach(c => { const item = document.createElement('div'); item.className = 'coin-item'; const color = c.m === 'futures' ? '#f0b90b' : '#00ffcc'; item.innerHTML = `<div><span class="coin-type" style="border:1px solid ${color}; color:${color}">${c.m.toUpperCase()}</span><span style="font-weight:bold;">${c.s}</span></div><div style="color:var(--gold); font-size:11px;">تحليل 🔭</div>`; item.onclick = () => startRadar(c.s, c.m); list.appendChild(item); }); }
 
         function startRadar(symbol, mode) {
             currentSymbol = symbol;
             currentMode = mode;
+            
+            // --- حل مشكلة التعليق: تصفير القائمة والذاكرة عند تغيير العملة ---
+            document.getElementById('iceberg-list').innerHTML = ''; // مسح الشاشة
+            lastBids = []; lastAsks = []; // تصفير الذاكرة القديمة للأسعار
+            // -----------------------------------------------------------
+
             document.getElementById('search-screen').style.display = 'none';
             document.getElementById('radar-ui').style.display = 'block';
             document.getElementById('current-coin-name').innerText = `[ ${symbol} ] - ${mode.toUpperCase()}`;
-            
             document.getElementById('chart-frame').src = `https://s.tradingview.com/widgetembed/?symbol=BINANCE:${symbol}${mode==='futures'?'PERP':''}&interval=1&theme=dark`;
-
             stopIntervals();
             updatePrice(); updateLiquidity();
             pInt = setInterval(updatePrice, 1000); lInt = setInterval(updateLiquidity, 5000);
@@ -291,76 +154,9 @@
 
         function goBack() { showSearch(); }
         function stopIntervals() { clearInterval(pInt); clearInterval(lInt); clearInterval(iInt); clearInterval(tInt); timeLeft = 30; }
-
-        async function updatePrice() {
-            try {
-                const url = currentMode === 'futures' ? `https://fapi.binance.com/fapi/v1/ticker/price?symbol=${currentSymbol}` : `https://api.binance.com/api/v3/ticker/price?symbol=${currentSymbol}`;
-                const res = await fetch(url);
-                const data = await res.json();
-                currentPrice = parseFloat(data.price);
-                document.getElementById('coin-price').innerText = '$' + currentPrice.toLocaleString(undefined, {minimumFractionDigits: 2});
-            } catch (e) {}
-        }
-
-        async function updateLiquidity() {
-            try {
-                const url = currentMode === 'futures' ? `https://fapi.binance.com/fapi/v1/depth?symbol=${currentSymbol}&limit=1000` : `https://api.binance.com/api/v3/depth?symbol=${currentSymbol}&limit=1000`;
-                const res = await fetch(url);
-                const data = await res.json();
-                let bids = data.bids.map(b => ({p: parseFloat(b[0]), v: parseFloat(b[1])}));
-                let asks = data.asks.map(a => ({p: parseFloat(a[0]), v: parseFloat(a[1])}));
-                
-                let tB = bids.reduce((s,b)=>s+(b.p*b.v),0), tS = asks.reduce((s,a)=>s+(a.p*a.v),0);
-                let buyP = (tB/(tB+tS)*100), sellP = 100 - buyP;
-                document.getElementById('buy-sell-display').innerText = `BUY: ${buyP.toFixed(1)}% | SELL: ${sellP.toFixed(1)}%`;
-                let buyBalls = Math.round(buyP / 10), sellBalls = 10 - buyBalls;
-                document.getElementById('power-bar').innerHTML = '<div class="ball" style="background:var(--green)"></div>'.repeat(buyBalls) + '<div class="ball" style="background:var(--red)"></div>'.repeat(sellBalls);
-                const sig = document.getElementById('sig-box');
-                sig.innerText = buyP > 50 ? "🟢 SIGNAL: BULLISH" : "🔴 SIGNAL: BEARISH";
-                sig.className = buyP > 50 ? "sig-bullish" : "sig-bearish";
-                
-                let topAsk = asks.sort((a,b) => (b.v*b.p) - (a.v*a.p))[0], topBid = bids.sort((a,b) => (b.v*b.p) - (a.v*a.p))[0];
-                drawWallLine(topAsk, 'sell'); drawWallLine(topBid, 'buy');
-
-                document.getElementById('s-walls').innerHTML = `<div style="color:var(--red); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS:</div>` + asks.slice(0, 3).map(a => `<div class="row"><span>Vol: ${(a.v*a.p/1000000).toFixed(2)}M</span><span>$${a.p.toLocaleString()}</span></div>`).join('');
-                document.getElementById('b-walls').innerHTML = `<div style="color:var(--green); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS:</div>` + bids.slice(0, 3).map(b => `<div class="row"><span>Vol: ${(b.v*b.p/1000000).toFixed(2)}M</span><span>$${b.p.toLocaleString()}</span></div>`).join('');
-                
-                const aiDec = document.getElementById('ai-decision'), aiTar = document.getElementById('ai-target'), aiC = document.getElementById('ai-conf');
-                
-                if(buyP > 60) { sigBuffer.buy++; sigBuffer.sell = 0; }
-                else if(sellP > 60) { sigBuffer.sell++; sigBuffer.buy = 0; }
-                else { sigBuffer.buy = 0; sigBuffer.sell = 0; }
-
-                if(sigBuffer.buy >= 2) { 
-                    aiDec.innerText = "🟢 STRONG BUY"; aiDec.style.color = "var(--green)"; 
-                    aiTar.innerText = "$" + topAsk.p.toLocaleString(); aiC.innerText = "94%"; 
-                } else if(sigBuffer.sell >= 2) { 
-                    aiDec.innerText = "🔴 STRONG SELL"; aiDec.style.color = "var(--red)"; 
-                    aiTar.innerText = "$" + topBid.p.toLocaleString(); aiC.innerText = "91%"; 
-                } else { 
-                    aiDec.innerText = "🟡 WAIT / SIDEWAYS"; aiDec.style.color = "var(--gold)"; 
-                    aiTar.innerText = "N/A"; aiC.innerText = "45%"; 
-                }
-
-            } catch (e) {}
-        }
-
-        function drawWallLine(wall, type) {
-            const line = document.getElementById(type + '-wall-line'), volText = document.getElementById(type === 'sell' ? 'sw-vol' : 'bw-vol');
-            if (!wall || !currentPrice) return;
-            
-            let range = currentPrice * 0.005; 
-            let diff = wall.p - currentPrice;
-            let pos = 175 - (diff / range) * 175;
-
-            if (pos > -10 && pos < 360) {
-                line.style.display = 'block'; 
-                line.style.top = pos + 'px';
-                volText.innerText = (wall.v * wall.p / 1000000).toFixed(2) + 'M';
-            } else { 
-                line.style.display = 'none'; 
-            }
-        }
+        async function updatePrice() { try { const url = currentMode === 'futures' ? `https://fapi.binance.com/fapi/v1/ticker/price?symbol=${currentSymbol}` : `https://api.binance.com/api/v3/ticker/price?symbol=${currentSymbol}`; const res = await fetch(url); const data = await res.json(); currentPrice = parseFloat(data.price); document.getElementById('coin-price').innerText = '$' + currentPrice.toLocaleString(undefined, {minimumFractionDigits: 2}); } catch (e) {} }
+        async function updateLiquidity() { try { const url = currentMode === 'futures' ? `https://fapi.binance.com/fapi/v1/depth?symbol=${currentSymbol}&limit=1000` : `https://api.binance.com/api/v3/depth?symbol=${currentSymbol}&limit=1000`; const res = await fetch(url); const data = await res.json(); let bids = data.bids.map(b => ({p: parseFloat(b[0]), v: parseFloat(b[1])})); let asks = data.asks.map(a => ({p: parseFloat(a[0]), v: parseFloat(a[1])})); let tB = bids.reduce((s,b)=>s+(b.p*b.v),0), tS = asks.reduce((s,a)=>s+(a.p*a.v),0); let buyP = (tB/(tB+tS)*100), sellP = 100 - buyP; document.getElementById('buy-sell-display').innerText = `BUY: ${buyP.toFixed(1)}% | SELL: ${sellP.toFixed(1)}%`; let buyBalls = Math.round(buyP / 10), sellBalls = 10 - buyBalls; document.getElementById('power-bar').innerHTML = '<div class="ball" style="background:var(--green)"></div>'.repeat(buyBalls) + '<div class="ball" style="background:var(--red)"></div>'.repeat(sellBalls); const sig = document.getElementById('sig-box'); sig.innerText = buyP > 50 ? "🟢 SIGNAL: BULLISH" : "🔴 SIGNAL: BEARISH"; sig.className = buyP > 50 ? "sig-bullish" : "sig-bearish"; let topAsk = asks.sort((a,b) => (b.v*b.p) - (a.v*a.p))[0], topBid = bids.sort((a,b) => (b.v*b.p) - (a.v*a.p))[0]; drawWallLine(topAsk, 'sell'); drawWallLine(topBid, 'buy'); document.getElementById('s-walls').innerHTML = `<div style="color:var(--red); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS:</div>` + asks.slice(0, 3).map(a => `<div class="row"><span>Vol: ${(a.v*a.p/1000000).toFixed(2)}M</span><span>$${a.p.toLocaleString()}</span></div>`).join(''); document.getElementById('b-walls').innerHTML = `<div style="color:var(--green); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS:</div>` + bids.slice(0, 3).map(b => `<div class="row"><span>Vol: ${(b.v*b.p/1000000).toFixed(2)}M</span><span>$${b.p.toLocaleString()}</span></div>`).join(''); const aiDec = document.getElementById('ai-decision'), aiTar = document.getElementById('ai-target'), aiC = document.getElementById('ai-conf'); if(buyP > 60) { sigBuffer.buy++; sigBuffer.sell = 0; } else if(sellP > 60) { sigBuffer.sell++; sigBuffer.buy = 0; } else { sigBuffer.buy = 0; sigBuffer.sell = 0; } if(sigBuffer.buy >= 2) { aiDec.innerText = "🟢 STRONG BUY"; aiDec.style.color = "var(--green)"; aiTar.innerText = "$" + topAsk.p.toLocaleString(); aiC.innerText = "94%"; } else if(sigBuffer.sell >= 2) { aiDec.innerText = "🔴 STRONG SELL"; aiDec.style.color = "var(--red)"; aiTar.innerText = "$" + topBid.p.toLocaleString(); aiC.innerText = "91%"; } else { aiDec.innerText = "🟡 WAIT / SIDEWAYS"; aiDec.style.color = "var(--gold)"; aiTar.innerText = "N/A"; aiC.innerText = "45%"; } } catch (e) {} }
+        function drawWallLine(wall, type) { const line = document.getElementById(type + '-wall-line'), volText = document.getElementById(type === 'sell' ? 'sw-vol' : 'bw-vol'); if (!wall || !currentPrice) return; let range = currentPrice * 0.005; let diff = wall.p - currentPrice; let pos = 175 - (diff / range) * 175; if (pos > -10 && pos < 360) { line.style.display = 'block'; line.style.top = pos + 'px'; volText.innerText = (wall.v * wall.p / 1000000).toFixed(2) + 'M'; } else { line.style.display = 'none'; } }
 
         async function updateIceberg() {
             try {
@@ -369,10 +165,7 @@
                 const data = await res.json();
                 let bids = data.bids, asks = data.asks;
                 let found = [];
-
-                // الربط مع السلايدر حصرياً
                 const sensitivity = parseInt(document.getElementById('ice-sensitivity').value);
-
                 if (lastBids.length > 0 && bids[0][0] === lastBids[0][0]) {
                     let d = parseFloat(bids[0][1]) - parseFloat(lastBids[0][1]);
                     let amt = d * bids[0][0]; if (amt > sensitivity) found.push({p: bids[0][0], m: amt, t: 'Buyer'});
