@@ -14,8 +14,6 @@
 </div>
 
 <script>
-// عدل دالة updateIceberg في قسم الـ Script لتصبح هكذا:
-
 async function updateIceberg() {
     try {
         const url = currentMode === 'futures' ? `https://fapi.binance.com/fapi/v1/depth?symbol=${currentSymbol}&limit=5` : `https://api.binance.com/api/v3/depth?symbol=${currentSymbol}&limit=5`;
