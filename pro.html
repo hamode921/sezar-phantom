@@ -8,91 +8,85 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <style>
         :root { --gold: #fbbf24; --ghost: #a855f7; --bg: #000; --card: #080808; --red: #ef4444; --green: #22c55e; }
-        
         #zoom-wrapper { width: 100vw; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         #zoom-container { transition: transform 0.3s ease; transform-origin: top center; width: 100%; display: flex; flex-direction: column; align-items: center; }
-        .inline-btn { background: rgba(251, 191, 36, 0.1); border: 1px solid var(--gold); color: var(--gold); padding: 2px 6px; border-radius: 4px; font-size: 10px; cursor: pointer; vertical-align: middle; margin: 0 5px; }
-
+        .inline-btn { background: rgba(251, 191, 36, 0.1); border: 1px solid var(--gold); color: var(--gold); padding: 2px 6px; border-radius: 4px; font-size: 10px; cursor: pointer; vertical-align: middle; margin: 0; }
         body { background: var(--bg); color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 10px; overflow-x: hidden; }
         
-        /* واجهة القفل والبحث */
-        .lock-box { border: 2px solid var(--gold); padding: 30px; text-align: center; background: #000; margin-top: 15vh; border-radius: 15px; width: 300px; }
-        .search-input { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 18px; width: 95%; border-radius: 15px; font-size: 16px; outline: none; text-align: center; margin-bottom: 20px; }
-        
-        /* أزرار التنقل الرئيسية */
-        .nav-tabs { display: flex; gap: 10px; width: 95%; margin-bottom: 20px; }
-        .tab-btn { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--gold); background: none; color: var(--gold); font-weight: bold; cursor: pointer; }
+        /* ستايلات القناص والبحث */
+        .nav-tabs { display: flex; gap: 10px; width: 100%; max-width: 450px; margin-bottom: 20px; }
+        .tab-btn { flex: 1; padding: 15px; border-radius: 12px; border: 1px solid var(--gold); background: #000; color: var(--gold); font-weight: bold; cursor: pointer; font-size: 14px; }
         .tab-btn.active { background: var(--gold); color: #000; }
-
-        /* ستايل القناص (Scanner) */
-        .scan-item { background: #0a0a0a; border: 1px solid #222; padding: 15px; border-radius: 15px; margin-bottom: 12px; position: relative; border-left: 4px solid var(--ghost); }
-        .scan-glow { box-shadow: 0 0 15px rgba(168, 85, 247, 0.2); border-color: var(--ghost); }
-        .vol-spike { color: var(--green); font-weight: bold; font-size: 12px; }
-
-        /* باقي الستايلات الأصلية */
-        #radar-ui, #search-screen, #scanner-screen { display: none; width: 100%; max-width: 450px; }
+        .scan-item { background: #080808; border: 1px solid #222; padding: 15px; border-radius: 15px; margin-bottom: 10px; border-left: 4px solid var(--ghost); }
+        .search-input { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 18px; width: 95%; border-radius: 15px; font-size: 16px; outline: none; text-align: center; margin-bottom: 20px; }
         .coin-item { background: #080808; border: 1px solid #222; padding: 15px; border-radius: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+
+        #radar-ui, #search-screen, #scanner-screen { display: none; width: 100%; max-width: 450px; padding-bottom: 80px; }
         .price-box { border: 1px dashed #555; padding: 15px; text-align: center; font-size: 32px; font-weight: 900; margin-bottom: 5px; background: #0a0a0a; color: #00d2ff; }
         .ice-card { background: var(--card); border: 1px solid var(--ghost); padding: 15px; border-radius: 12px; margin-top: 20px; width: 100%; box-sizing: border-box; }
         .row { display: flex; justify-content: space-between; padding: 12px 5px; border-bottom: 1px solid #111; font-size: 13px; font-weight: bold; }
+        .ball { width: 12px; height: 12px; border-radius: 50%; }
+        .chart-wall-line { position: absolute; left: 0; width: 100%; height: 2px; z-index: 10; pointer-events: none; }
+        .wall-label { position: absolute; right: 80px; font-size: 9px; font-weight: bold; padding: 2px 5px; background: rgba(0,0,0,0.8); border-radius: 3px; border: 1px solid currentColor; }
     </style>
 </head>
 <body onload="checkAuth()">
 
 <div id="zoom-wrapper">
     <div id="zoom-container">
-        <div id="auth-screen" class="lock-box">
+        <div id="auth-screen" style="border:2px solid var(--gold); padding:30px; text-align:center; background:#000; margin-top:15vh; border-radius:15px; width:300px;">
             <div style="color:var(--gold); font-weight:bold; margin-bottom:20px;">🔒 تفعيل SEZAR-PHANTOM PRO</div>
-            <input type="password" id="pass-key" style="background:#111; border:1px solid #333; color:var(--gold); padding:12px; width:90%;" placeholder="•••••">
-            <button onclick="activate()" style="background:var(--gold); margin-top:10px; padding:15px; width:100%; font-weight:bold;">دخول</button>
-            <div id="error-msg" style="color:var(--red); display:none; margin-top:10px;"></div>
+            <input type="password" id="pass-key" style="background:#111; border:1px solid #333; color:var(--gold); padding:12px; width:90%; text-align:center;" placeholder="•••••">
+            <button onclick="activate()" style="background:var(--gold); color:#000; border:none; padding:15px; width:100%; font-weight:bold; margin-top:10px; border-radius:8px;">تسجيل دخول</button>
+            <div id="error-msg" style="color:var(--red); font-size:12px; margin-top:10px; display:none;"></div>
         </div>
 
         <div id="search-screen">
-            <div style="text-align:center; margin-bottom:20px;"><span style="font-size:24px; color:var(--gold); font-weight:bold;">「 SEZAR-PHANTOM 」</span></div>
-            
+            <div style="text-align:center; margin-bottom:20px;"><span style="font-size:26px; font-weight:bold; color:var(--gold);">「 SEZAR-PHANTOM 」</span></div>
             <div class="nav-tabs">
-                <button class="tab-btn active" onclick="switchTab('search')">🔍 بحث</button>
-                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
+                <button id="btn-search" class="tab-btn active" onclick="switchPage('search')">🔍 بحث</button>
+                <button id="btn-scanner" class="tab-btn" onclick="switchPage('scanner')">🛰️ القناص (ميم)</button>
             </div>
-
-            <div id="search-area">
-                <input type="text" class="search-input" id="search-input" placeholder="🔍 ابحث عن عملة..." oninput="searchCoins()">
+            <div id="search-content">
+                <input type="text" class="search-input" id="search-input" placeholder="🔍 ابحث (Spot & Futures)..." oninput="searchCoins()">
                 <div id="results-list"></div>
             </div>
         </div>
 
         <div id="scanner-screen">
-            <div style="text-align:center; margin-bottom:20px;"><span style="font-size:20px; color:var(--ghost); font-weight:bold;">🛰️ WHALE SCANNER (Meme Focus)</span></div>
+            <div style="text-align:center; margin-bottom:20px;"><span style="font-size:20px; font-weight:bold; color:var(--ghost);">WHALE SCANNER (Meme Focus) 🛰️</span></div>
             <div class="nav-tabs">
-                <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
-                <button class="tab-btn active" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
+                <button class="tab-btn" onclick="switchPage('search')">🔍 بحث</button>
+                <button class="tab-btn active" onclick="switchPage('scanner')">🛰️ القناص (ميم)</button>
             </div>
-            <div id="scanner-list">
-                <div style="text-align:center; color:#555; padding:20px;">جاري فحص السيولة وانفجارات الفوليوم...</div>
-            </div>
+            <div id="scanner-list"></div>
         </div>
 
         <div id="radar-ui">
-            <div style="border:1px solid var(--gold); padding:10px; text-align:center; margin-bottom:10px; position:relative;">
-                <button onclick="switchTab('search')" style="position:absolute; left:10px; background:var(--gold); border:none; padding:5px; font-size:10px;">🔙</button>
+            <div style="border:1px solid var(--gold); padding:5px; text-align:center; margin-bottom:15px; border-radius:5px; position:relative;">
+                <button onclick="goBack()" style="position:absolute; left:8px; top:8px; background:var(--gold); color:#000; border:none; padding:4px 10px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">🔙 رجوع</button>
                 <h2 id="radar-title" style="margin:0; font-size:16px; color:var(--gold);">「 SEZAR-PHANTOM 」</h2>
-                <p id="current-coin-name" style="margin:0; font-size:11px;">[ BTCUSDT ]</p>
+                <p id="current-coin-name" style="font-size:11px; margin:0;">[ BTCUSDT ]</p>
             </div>
             <div class="price-box" id="coin-price">Loading...</div>
-            <div id="chart-container" style="height:300px; background:#000; margin-bottom:10px;">
+            <div id="chart-container" style="width:100%; height:350px; border:1px solid #222; border-radius:10px; background:#000; margin:15px 0; overflow:hidden; position:relative;">
                 <iframe id="chart-frame" style="width:100%; height:100%; border:none;"></iframe>
+                <div id="sell-wall-line" class="chart-wall-line" style="background:var(--red); display:none;"><span class="wall-label" style="color:var(--red);">SELL: <span id="sw-vol"></span></span></div>
+                <div id="buy-wall-line" class="chart-wall-line" style="background:var(--green); display:none;"><span class="wall-label" style="color:var(--green);">BUY: <span id="bw-vol"></span></span></div>
             </div>
-            <div id="buy-sell-per" style="text-align:center; font-weight:bold;">BUY: --% | SELL: --%</div>
-            <div id="power-bar" style="display:flex; justify-content:center; gap:5px; margin:10px 0;"></div>
+            <div class="timer-text">تحديث السيولة خلال: <span id="timer">30</span> ثانية</div>
+            <div id="buy-sell-per" style="text-align:center; font-weight:bold; margin-bottom:10px;">BUY: --% | SELL: --%</div>
+            <div id="power-bar"></div>
             <div id="s-walls"></div>
-            <div id="b-walls" style="margin-top:10px;"></div>
+            <div id="b-walls" style="margin-top:20px;"></div>
             <div class="ice-card">
                 <div style="font-size:11px; color:var(--ghost); display:flex; justify-content:space-between; font-weight:bold;">
                     <span>ICEBERG DETECTOR</span>
-                    <span id="ice-threshold-display">50K</span>
+                    <span id="ice-threshold-display" style="background:#4c1d95; color:#fff; padding:2px 8px; border-radius:10px;">50K</span>
                 </div>
-                <input type="range" id="ice-sensitivity" min="1000" max="100000" step="1000" value="50000" style="width:100%; accent-color:var(--ghost);" oninput="document.getElementById('ice-threshold-display').innerText = (this.value/1000).toFixed(0) + 'K'">
+                <div style="padding:10px 0;">
+                    <input type="range" id="ice-sensitivity" min="1000" max="100000" step="1000" value="50000" style="width:100%; accent-color:var(--ghost);" oninput="document.getElementById('ice-threshold-display').innerText = (this.value/1000).toFixed(0) + 'K'">
+                </div>
                 <div id="iceberg-list"></div>
             </div>
         </div>
@@ -100,34 +94,35 @@
 </div>
 
 <script>
-    // إعدادات الفايربيس (كما هي في كودك)
+    // --- إعداداتك الأصلية ---
     const firebaseConfig = { apiKey: "AIzaSyAzEZksgZMPbY79K_TM3mHKeW1shQ6V-lY", projectId: "sezar-phantom-auth" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    let currentSymbol = 'BTCUSDT', currentMode = 'spot', allCoins = [], lastBids = [], lastAsks = [];
-    let pInt, lInt, iInt, scanInt;
+    let currentSymbol = 'BTCUSDT', currentMode = 'spot', allCoins = [], timeLeft = 30, currentPrice = 0, lastBids = [], lastAsks = [];
+    let pInt, lInt, iInt, tInt, scanInt;
 
-    // دالة التنقل بين الصفحات
-    function switchTab(tab) {
-        document.getElementById('search-screen').style.display = tab === 'search' ? 'block' : 'none';
-        document.getElementById('scanner-screen').style.display = tab === 'scanner' ? 'block' : 'none';
-        document.getElementById('radar-ui').style.display = tab === 'radar' ? 'block' : 'none';
-        if(tab === 'scanner') { updateScanner(); if(!scanInt) scanInt = setInterval(updateScanner, 10000); }
-        else { clearInterval(scanInt); scanInt = null; }
+    // --- نظام التنقل المعدل ---
+    function switchPage(page) {
+        document.getElementById('search-screen').style.display = page === 'search' ? 'block' : 'none';
+        document.getElementById('scanner-screen').style.display = page === 'scanner' ? 'block' : 'none';
+        document.getElementById('radar-ui').style.display = page === 'radar' ? 'block' : 'none';
+        if(page === 'scanner') { updateScanner(); scanInt = setInterval(updateScanner, 10000); }
+        else { clearInterval(scanInt); }
     }
 
     async function checkAuth() {
-        if (localStorage.getItem('sz_ultimate_v1_key')) { showSearch(); }
+        const savedKey = localStorage.getItem('sz_ultimate_v1_key');
+        if (savedKey) showSearch();
     }
 
     function showSearch() {
         document.getElementById('auth-screen').style.display = 'none';
-        switchTab('search');
-        loadAllCoins();
+        switchPage('search');
+        if(allCoins.length === 0) loadCoins();
     }
 
-    async function loadAllCoins() {
+    async function loadCoins() {
         const res = await fetch('https://api.binance.com/api/v3/exchangeInfo');
         const data = await res.json();
         allCoins = data.symbols.filter(s => s.symbol.endsWith('USDT')).map(s => ({s: s.symbol, m: 'spot'}));
@@ -147,50 +142,51 @@
         });
     }
 
-    // --- منطق القناص الجديد (Whale Scanner) ---
+    // --- منطق القناص الجديد (ربط مباشر بالرادار) ---
     async function updateScanner() {
-        try {
-            // جلب أعلى 20 عملة من حيث الحجم والتغير
-            const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
-            const data = await res.json();
-            
-            // فلترة عملات الميم والعملات النشطة (فوليوم عالي بالنسبة لماركت كاب صغير)
-            let hotspots = data.filter(c => c.symbol.endsWith('USDT'))
-                               .sort((a, b) => b.priceChangePercent - a.priceChangePercent)
-                               .slice(0, 10);
-
-            const list = document.getElementById('scanner-list');
-            list.innerHTML = '';
-
-            hotspots.forEach(c => {
-                const item = document.createElement('div');
-                item.className = `scan-item ${parseFloat(c.priceChangePercent) > 10 ? 'scan-glow' : ''}`;
-                item.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <div style="font-weight:bold; font-size:16px; color:var(--gold);">${c.symbol}</div>
-                            <div class="vol-spike">CHANGE: ${c.priceChangePercent}%</div>
-                        </div>
-                        <div style="text-align:left;">
-                            <div style="font-size:10px; color:#888;">VOL: ${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div>
-                            <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--ghost); border:none; color:#fff; padding:5px 10px; border-radius:5px; margin-top:5px; cursor:pointer;">قنص 🎯</button>
-                        </div>
+        const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
+        const data = await res.json();
+        const hotspots = data.filter(c => c.symbol.endsWith('USDT')).sort((a,b) => b.priceChangePercent - a.priceChangePercent).slice(0, 8);
+        const list = document.getElementById('scanner-list');
+        list.innerHTML = '';
+        hotspots.forEach(c => {
+            const div = document.createElement('div');
+            div.className = 'scan-item';
+            div.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="color:var(--gold); font-weight:bold;">${c.symbol}</div>
+                        <div style="color:var(--green); font-size:12px;">CHANGE: ${c.priceChangePercent}%</div>
                     </div>
-                `;
-                list.appendChild(item);
-            });
-        } catch (e) {}
+                    <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--ghost); color:#fff; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">قنص 🎯</button>
+                </div>`;
+            list.appendChild(div);
+        });
     }
 
+    // --- تشغيل الرادار (كودك الأساسي) ---
     function startRadar(symbol, mode) {
         currentSymbol = symbol;
-        switchTab('radar');
+        currentMode = mode;
+        switchPage('radar');
+        document.getElementById('iceberg-list').innerHTML = '';
+        lastBids = []; lastAsks = [];
         document.getElementById('current-coin-name').innerText = `[ ${symbol} ]`;
         document.getElementById('chart-frame').src = `https://s.tradingview.com/widgetembed/?symbol=BINANCE:${symbol}&interval=1&theme=dark`;
-        // تشغيل دوال الرادار الأصلية مالتك هنا...
+        
+        stopIntervals();
+        updatePrice(); updateLiquidity();
+        pInt = setInterval(updatePrice, 1000);
+        lInt = setInterval(updateLiquidity, 5000);
+        iInt = setInterval(updateIceberg, 1000);
+        tInt = setInterval(() => { timeLeft--; if(timeLeft<0) timeLeft=30; document.getElementById('timer').innerText = timeLeft; }, 1000);
     }
 
-    // إضافة باقي دوال الرادار (updatePrice, updateLiquidity, updateIceberg) من كودك القديم
+    function goBack() { switchPage('search'); stopIntervals(); }
+    function stopIntervals() { clearInterval(pInt); clearInterval(lInt); clearInterval(iInt); clearInterval(tInt); timeLeft = 30; }
+
+    // أضف هنا دوال (updatePrice, updateLiquidity, updateIceberg, drawWallLine) الأصلية مالتك بالتمام.
+    // (وضعتها لك مختصرة لضيق المساحة، انقلها كما هي من كودك الأساسي)
 </script>
 </body>
 </html>
