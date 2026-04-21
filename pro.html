@@ -158,6 +158,7 @@
 
     let currentSymbol = 'BTCUSDT', currentMode = 'spot', allCoins = [], timeLeft = 30, currentPrice = 0, lastBids = [], lastAsks = [], pInt, lInt, iInt, tInt, scanInt;
     let sigBuffer = { buy: 0, sell: 0 };
+    let lastVolMap = new Map(); // لتخزين الفوليوم السابق وحساب الانفجار
 
     function setZoom(scale) { const container = document.getElementById('zoom-container'); container.style.transform = `scale(${scale})`; container.style.width = (100 / scale) + '%'; }
 
@@ -165,7 +166,7 @@
         document.getElementById('search-screen').style.display = tab === 'search' ? 'block' : 'none';
         document.getElementById('scanner-screen').style.display = tab === 'scanner' ? 'block' : 'none';
         document.getElementById('radar-ui').style.display = tab === 'radar' ? 'block' : 'none';
-        if(tab === 'scanner') { updateScanner(); if(!scanInt) scanInt = setInterval(updateScanner, 10000); }
+        if(tab === 'scanner') { updateScanner(); if(!scanInt) scanInt = setInterval(updateScanner, 5000); } // تحديث أسرع للصيد
         else { clearInterval(scanInt); scanInt = null; }
     }
 
@@ -229,27 +230,32 @@
         });
     }
 
-    // --- دالة القناص المطور بالذكاء الاصطناعي ---
+    // --- خوارزمية القناص الاستباقي (Pre-Spike Algorithm) ---
     async function updateScanner() {
         try {
             const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
             const data = await res.json();
             
-            // فلترة وتصنيف: انفجار فوليوم + صعود قوي
-            const hotspots = data.filter(c => c.symbol.endsWith('USDT'))
-                .sort((a,b) => b.priceChangePercent - a.priceChangePercent)
-                .slice(0, 10);
-
             const list = document.getElementById('scanner-list');
             list.innerHTML = '';
 
-            hotspots.forEach(c => {
+            // تصفية العملات النشطة وترتيبها حسب الانفجار اللحظي
+            let candidates = data.filter(c => c.symbol.endsWith('USDT'))
+                .map(c => {
+                    const currentVol = parseFloat(c.quoteVolume);
+                    const prevVol = lastVolMap.get(c.symbol) || currentVol;
+                    const volIncrease = prevVol > 0 ? ((currentVol - prevVol) / prevVol) * 100 : 0;
+                    lastVolMap.set(c.symbol, currentVol);
+                    return { ...c, volIncrease };
+                })
+                .sort((a,b) => b.volIncrease - a.volIncrease)
+                .slice(0, 10);
+
+            candidates.forEach(c => {
                 const change = parseFloat(c.priceChangePercent);
-                const volume = parseFloat(c.quoteVolume);
-                
-                // حالة الانفجار (Spike): إذا الصعود > 15%
-                const isSpike = change > 15;
-                
+                // تفعيل الوميض لو زاد الفوليوم اللحظي بشكل مفاجئ (أكبر من 2%) خلال 5 ثواني
+                const isSpike = c.volIncrease > 2; 
+
                 const item = document.createElement('div');
                 item.className = `scan-item ${isSpike ? 'spike' : ''}`;
                 item.innerHTML = `
@@ -258,7 +264,9 @@
                             ${isSpike ? '🔥 ' : ''}${c.symbol}
                         </div>
                         <div style="color:${change > 0 ? 'var(--green)' : 'var(--red)'}; font-size:12px;">CHANGE: ${change}%</div>
-                        <div style="color:#555; font-size:10px;">VOL: ${(volume/1000000).toFixed(2)}M</div>
+                        <div style="color:${isSpike ? 'var(--green)' : '#555'}; font-size:10px;">
+                            VOL SPIKE: +${c.volIncrease.toFixed(2)}%
+                        </div>
                     </div>
                     <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--ghost); color:#fff; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">قنص 🎯</button>
                 `;
