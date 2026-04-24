@@ -12,64 +12,77 @@
         #zoom-wrapper { width: 100vw; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         #zoom-container { transition: transform 0.3s ease; transform-origin: top center; width: 100%; display: flex; flex-direction: column; align-items: center; }
         
+        .inline-btn { background: rgba(251, 191, 36, 0.1); border: 1px solid var(--gold); color: var(--gold); padding: 2px 6px; border-radius: 4px; font-size: 10px; cursor: pointer; vertical-align: middle; margin: 0 5px; }
+
         body { background: var(--bg); color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 10px; overflow-x: hidden; }
         
+        .lock-box { border: 2px solid var(--gold); padding: 30px; text-align: center; background: #000; margin-top: 15vh; border-radius: 15px; width: 300px; }
+        .secure-note { color: #888; font-size: 11px; margin-bottom: 15px; line-height: 1.6; }
+        input.pass { background: #111; border: 1px solid #333; color: var(--gold); padding: 12px; text-align: center; margin-bottom: 20px; width: 95%; outline: none; border-radius: 5px; font-size: 18px; }
+        button.login-btn { background: var(--gold); color: #000; border: none; padding: 15px; font-weight: bold; cursor: pointer; border-radius: 8px; width: 100%; font-size: 18px; margin-bottom: 20px; }
+
+        #search-screen, #scanner-screen, #bottom-screen { display: none; width: 100%; max-width: 450px; text-align: center; margin-top: 20px; }
+        .sezar-brand { margin-bottom: 30px; }
+        .sezar-brand .sub-text { font-size: 28px; font-weight: bold; color: var(--gold); text-shadow: 0 0 15px rgba(251, 191, 36, 0.5); }
+        .search-input { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 18px; width: 95%; border-radius: 15px; font-size: 16px; outline: none; text-align: center; margin-bottom: 30px; }
+        .coin-item { background: #080808; border: 1px solid #222; padding: 15px; border-radius: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .coin-type { font-size: 9px; padding: 2px 5px; border-radius: 3px; margin-right: 5px; }
+
+        #radar-ui { display: none; width: 100%; max-width: 450px; padding-bottom: 80px; position: relative; }
+        .header { border: 1px solid var(--gold); padding: 5px; text-align: center; margin-bottom: 15px; border-radius: 5px; position: relative; }
+        .back-btn { position: absolute; left: 8px; top: 8px; background: var(--gold); color: #000; border: none; padding: 4px 10px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer; }
+
+        .price-box { border: 1px dashed #555; padding: 15px; text-align: center; font-size: 32px; font-weight: 900; margin-bottom: 5px; background: #0a0a0a; color: #00d2ff; }
+        
+        #chart-container { width: 100%; height: 350px; border: 1px solid #222; border-radius: 10px; background: #000; margin: 15px 0; overflow: hidden; position: relative; }
+        #chart-frame { width: 100%; height: 100%; border: none; }
+
         .nav-tabs { display: flex; gap: 5px; width: 95%; margin-bottom: 20px; }
         .tab-btn { flex: 1; padding: 10px 5px; border-radius: 10px; border: 1px solid var(--gold); background: #000; color: var(--gold); font-weight: bold; cursor: pointer; font-size: 11px; }
         .tab-btn.active { background: var(--gold); color: #000; }
-
-        #search-screen, #scanner-screen, #bottom-scanner-screen { display: none; width: 100%; max-width: 450px; text-align: center; margin-top: 20px; }
-        .sezar-brand { margin-bottom: 30px; }
-        .sezar-brand .sub-text { font-size: 28px; font-weight: bold; color: var(--gold); text-shadow: 0 0 15px rgba(251, 191, 36, 0.5); }
         
-        /* تصميم الكارت الذهبي الموحد - مطابق للصور 100% */
-        .scan-item { 
-            background: #080808; 
-            border: 1px solid #222; 
-            padding: 15px; 
-            border-radius: 15px; 
-            margin-bottom: 10px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            transition: 0.3s; 
-        }
+        /* تصميم الكارت الذهبي الموحد */
+        .scan-item { background: #080808; border: 1px solid #222; padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
+        .scan-item.spike { border-left: 4px solid var(--green); animation: blink 1s infinite; }
+        @keyframes blink { 0% { background: #080808; } 50% { background: #062010; } 100% { background: #080808; } }
 
-        /* تنسيق البيانات جهة اليمين كما في كودك الأصلي */
-        .item-data { text-align: right; }
-        .item-symbol { color: var(--gold); font-weight: bold; font-size: 16px; display: flex; align-items: center; }
-        .item-perc { color: var(--green); font-size: 12px; font-weight: bold; }
-        .item-vol { color: #666; font-size: 10px; }
+        .bold-tag { background: var(--green); color: #000; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
 
-        /* الزر الذهبي جهة اليسار */
-        .btn-hunt { 
-            background: var(--gold); 
-            color: #000; 
-            border: none; 
-            padding: 10px 20px; 
-            border-radius: 10px; 
-            cursor: pointer; 
-            font-weight: bold; 
-        }
-
-        #radar-ui { display: none; width: 100%; max-width: 450px; }
-        .price-box { border: 1px dashed #555; padding: 15px; text-align: center; font-size: 32px; font-weight: 900; background: #0a0a0a; color: #00d2ff; }
-        .contact-dev { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); padding: 15px 0; display: flex; justify-content: space-around; border-top: 1px solid #222; }
-        .contact-dev a { color: var(--gold); text-decoration: none; font-size: 11px; border: 1px solid var(--gold); padding: 8px 16px; border-radius: 5px; }
+        /* بقية الستايل من كودك الأصلي */
+        .whale-live-box { background: #0a0a0a; border: 1px solid var(--gold); border-radius: 10px; margin: 15px 0; padding: 10px; }
+        .whale-header { font-size: 10px; color: var(--gold); font-weight: bold; text-align: center; border-bottom: 1px solid #222; padding-bottom: 5px; margin-bottom: 10px; }
+        .whale-grid { display: flex; justify-content: space-between; text-align: center; }
+        .whale-col { flex: 1; }
+        .whale-label { font-size: 9px; color: #666; margin-bottom: 4px; }
+        .whale-val { font-size: 12px; font-weight: bold; }
+        .ai-signal-box { background: linear-gradient(45deg, #080808, #111); border: 1px double var(--gold); border-radius: 10px; padding: 15px; margin: 15px 0; text-align: center; }
+        #sig-box { text-align: center; font-weight: bold; padding: 15px; margin-top: 30px; border-radius: 5px; }
+        .sig-bullish { background: #064e3b; color: #22c55e; border: 1px solid #22c55e; }
+        .sig-bearish { background: #450a0a; color: #ef4444; border: 1px solid #ef4444; }
+        .contact-dev { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); padding: 15px 0; display: flex; justify-content: space-around; border-top: 1px solid #222; z-index: 100; }
+        .contact-dev a { color: var(--gold); text-decoration: none; font-size: 11px; border: 1px solid var(--gold); padding: 8px 16px; border-radius: 5px; font-weight: bold; }
     </style>
 </head>
-<body onload="switchTab('search')">
+<body onload="checkAuth()">
 
 <div id="zoom-wrapper">
     <div id="zoom-container">
+        <div id="auth-screen" class="lock-box">
+            <div style="color:var(--gold); font-weight:bold; margin-bottom:20px;">🔒 تفعيل SEZAR-PHANTOM PRO</div>
+            <input type="password" id="pass-key" class="pass" placeholder="•••••">
+            <button onclick="activate()" class="login-btn">تسجيل دخول</button>
+            <div id="error-msg" style="color: var(--red); font-size: 12px; margin-top: 10px; display: none;"></div>
+        </div>
+
         <div id="search-screen">
             <div class="sezar-brand"><span class="sub-text">「 SEZAR-PHANTOM 」</span></div>
             <div class="nav-tabs">
                 <button class="tab-btn active" onclick="switchTab('search')">🔍 بحث</button>
                 <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
-                <button class="tab-btn" onclick="switchTab('bottom')">💎 قناص القيعان</button>
+                <button class="tab-btn" onclick="switchTab('bottom')">💎 القيعان</button>
             </div>
-            <div style="color:var(--gold)">ابحث عن العملات هنا...</div>
+            <input type="text" class="search-input" id="search-input" placeholder="🔍 ابحث..." oninput="searchCoins()">
+            <div id="results-list"></div>
         </div>
 
         <div id="scanner-screen">
@@ -77,82 +90,87 @@
             <div class="nav-tabs">
                 <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
                 <button class="tab-btn active" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
-                <button class="tab-btn" onclick="switchTab('bottom')">💎 قناص القيعان</button>
+                <button class="tab-btn" onclick="switchTab('bottom')">💎 القيعان</button>
             </div>
-            <div style="color:var(--ghost); font-weight:bold; margin-bottom:15px; text-align:right;">🚀 مراقب السيولة والارتداد:</div>
             <div id="scanner-list"></div>
         </div>
 
-        <div id="bottom-scanner-screen">
+        <div id="bottom-screen">
             <div class="sezar-brand"><span class="sub-text">BOTTOM SCANNER</span></div>
             <div class="nav-tabs">
                 <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
                 <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
-                <button class="tab-btn active" onclick="switchTab('bottom')">💎 قناص القيعان</button>
+                <button class="tab-btn active" onclick="switchTab('bottom')">💎 القيعان</button>
             </div>
-            <div style="color:var(--gold); font-weight:bold; margin-bottom:15px; text-align:right;">🐳 تجميع الحيتان في القاع:</div>
-            <div id="bottom-scanner-list"></div>
+            <div id="bottom-list"></div>
         </div>
 
         <div id="radar-ui">
-            <button onclick="switchTab('search')" style="background:var(--gold); border:none; padding:10px; border-radius:5px; margin-bottom:15px;">🔙 رجوع</button>
-            <div class="price-box" id="coin-price">0.00</div>
+            <div class="header">
+                <button class="back-btn" onclick="goBack()">🔙 رجوع</button>
+                <h2 id="radar-title">「 SEZAR-PHANTOM 」</h2>
+                <p id="current-coin-name" style="font-size:11px; margin:0;"></p>
+            </div>
+            <div class="price-box" id="coin-price">Loading...</div>
+            <div id="chart-container"><iframe id="chart-frame" src=""></iframe></div>
+            <div class="whale-live-box">
+                <div class="whale-header">🐳 WHALE POSITIONS (LIVE)</div>
+                <div class="whale-grid">
+                    <div class="whale-col">
+                        <div class="whale-label">SHORT</div>
+                        <div class="whale-val" id="short-whales" style="color:var(--red)">N/A</div>
+                    </div>
+                    <div class="whale-col">
+                        <div class="whale-label">LONG</div>
+                        <div class="whale-val" id="long-whales" style="color:var(--green)">N/A</div>
+                    </div>
+                </div>
+            </div>
+            <div id="sig-box">ANALYZING...</div>
         </div>
     </div>
 </div>
 
+<div class="contact-dev"><a href="https://t.me/se44se" target="_blank">✈️ تليجرام</a></div>
+
 <script>
-    let scanInt;
+    // الإعدادات الأصلية
+    const firebaseConfig = { apiKey: "AIzaSyAzEZksgZMPbY79K_TM3mHKeW1shQ6V-lY", authDomain: "sezar-phantom-auth.firebaseapp.com", projectId: "sezar-phantom-auth", storageBucket: "sezar-phantom-auth.firebasestorage.app", messagingSenderId: "112991314655", appId: "1:112991314655:web:cbca0b5c0c6b6e4f51ff6a" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let allCoins = [], scanInt, currentSymbol;
 
     function switchTab(tab) {
         document.getElementById('search-screen').style.display = tab === 'search' ? 'block' : 'none';
         document.getElementById('scanner-screen').style.display = tab === 'scanner' ? 'block' : 'none';
-        document.getElementById('bottom-scanner-screen').style.display = tab === 'bottom' ? 'block' : 'none';
+        document.getElementById('bottom-screen').style.display = tab === 'bottom' ? 'block' : 'none';
         document.getElementById('radar-ui').style.display = tab === 'radar' ? 'block' : 'none';
         
         clearInterval(scanInt);
-        if(tab === 'scanner') { updateScanner(); scanInt = setInterval(updateScanner, 5000); }
-        if(tab === 'bottom') { updateBottomScanner(); scanInt = setInterval(updateBottomScanner, 5000); }
+        if(tab === 'scanner') scanInt = setInterval(updateScanner, 5000);
+        if(tab === 'bottom') scanInt = setInterval(updateBottomScanner, 5000);
     }
 
-    async function updateScanner() {
-        const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
+    async function checkAuth() {
+        const savedKey = localStorage.getItem('sz_ultimate_v1_key');
+        if (savedKey) showSearch();
+    }
+
+    async function activate() {
+        const k = document.getElementById('pass-key').value;
+        if(k) { localStorage.setItem('sz_ultimate_v1_key', k); showSearch(); }
+    }
+
+    async function showSearch() {
+        document.getElementById('auth-screen').style.display = 'none';
+        switchTab('search');
+        const res = await fetch('https://api.binance.com/api/v3/exchangeInfo');
         const data = await res.json();
-        const list = document.getElementById('scanner-list');
-        let candidates = data.filter(c => c.symbol.endsWith('USDT') && parseFloat(c.priceChangePercent) > 2).slice(0, 8);
-        list.innerHTML = candidates.map(c => `
-            <div class="scan-item">
-                <button class="btn-hunt" onclick="startRadar('${c.symbol}')">قنص 🎯</button>
-                <div class="item-data">
-                    <div class="item-symbol">🚀 ${c.symbol}</div>
-                    <div class="item-perc">PRE-PUMP: ${c.priceChangePercent}%</div>
-                    <div class="item-vol">VOLUME: ${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div>
-                </div>
-            </div>`).join('');
+        allCoins = data.symbols.filter(s => s.symbol.endsWith('USDT')).map(s => ({s: s.symbol, m: 'spot'}));
+        searchCoins();
     }
 
-    async function updateBottomScanner() {
-        const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
-        const data = await res.json();
-        const list = document.getElementById('bottom-scanner-list');
-        // فلتر القيعان: العملة قريبة من أدنى سعر في 24 ساعة
-        let bottomCoins = data.filter(c => {
-            const low = parseFloat(c.lowPrice), current = parseFloat(c.lastPrice);
-            return c.symbol.endsWith('USDT') && ((current - low) / low) * 100 < 1.2 && parseFloat(c.quoteVolume) > 2000000;
-        }).slice(0, 8);
-
-        list.innerHTML = bottomCoins.map(c => `
-            <div class="scan-item" style="border-left: 5px solid var(--gold);">
-                <button class="btn-hunt" onclick="startRadar('${c.symbol}')">قنص 🎯</button>
-                <div class="item-data">
-                    <div class="item-symbol">💎 ${c.symbol}</div>
-                    <div class="item-perc">تجميع حيتان 🐳</div>
-                    <div class="item-vol">VOLUME: ${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div>
-                </div>
-            </div>`).join('');
-    }
-
-    function startRadar(s) { switchTab('radar'); document.getElementById('coin-price').innerText = s; }
-</script>
-</body>
-</html>
+    function searchCoins() {
+        const query = document.getElementById('search-input').value.toUpperCase();
+        const list = document.getElementById('results-
