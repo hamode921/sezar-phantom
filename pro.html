@@ -55,7 +55,6 @@
         #ai-decision { font-size: 18px; font-weight: 900; margin: 5px 0; }
         .ai-meta { display: flex; justify-content: space-around; font-size: 10px; color: #888; margin-top: 5px; }
 
-        /* الأوامر المضافة للحيتان لايف */
         .whale-live-box { background: #0a0a0a; border: 1px solid var(--gold); border-radius: 10px; margin: 15px 0; padding: 10px; }
         .whale-header { font-size: 10px; color: var(--gold); font-weight: bold; text-align: center; border-bottom: 1px solid #222; padding-bottom: 5px; margin-bottom: 10px; }
         .whale-grid { display: flex; justify-content: space-between; text-align: center; }
@@ -75,7 +74,6 @@
         .scan-item.spike { border-color: var(--green); box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); animation: blink 1s infinite; }
         
         @keyframes blink { 0% { background: #080808; } 50% { background: #062010; } 100% { background: #080808; } }
-
         .bold-tag { background: var(--green); color: #000; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; animation: pulse 0.5s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
@@ -103,7 +101,7 @@
             <div class="sezar-brand"><span class="sub-text">「 SEZAR-PHANTOM 」</span></div>
             <div class="nav-tabs">
                 <button class="tab-btn active" onclick="switchTab('search')">🔍 بحث</button>
-                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
+                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص</button>
             </div>
             <input type="text" class="search-input" id="search-input" placeholder="🔍 ابحث (Spot & Futures)..." oninput="searchCoins()">
             <div id="results-list"></div>
@@ -111,9 +109,9 @@
 
         <div id="scanner-screen">
             <div class="sezar-brand"><span class="sub-text" style="color:var(--ghost);">WHALE SCANNER</span></div>
-            <div class="nav-tabs">
-                <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
-                <button class="tab-btn active" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
+            <div id="scanner-tabs" style="display:flex; gap:10px; width:95%; margin:0 auto 20px auto;">
+                <button id="tab-meme" class="tab-btn active" onclick="setScannerMode('meme')">🚀 ميم</button>
+                <button id="tab-spot" class="tab-btn" onclick="setScannerMode('spot')" style="border-color:var(--ghost); color:var(--ghost);">💎 انفجار</button>
             </div>
             <div id="scanner-list"></div>
         </div>
@@ -190,6 +188,7 @@
     let currentSymbol = 'BTCUSDT', currentMode = 'spot', allCoins = [], timeLeft = 30, currentPrice = 0, lastBids = [], lastAsks = [], pInt, lInt, iInt, tInt, scanInt;
     let sigBuffer = { buy: 0, sell: 0 };
     let lastVolMap = new Map();
+    let currentScannerTab = 'meme';
 
     function setZoom(scale) { const container = document.getElementById('zoom-container'); container.style.transform = `scale(${scale})`; container.style.width = (100 / scale) + '%'; }
 
@@ -199,6 +198,13 @@
         document.getElementById('radar-ui').style.display = tab === 'radar' ? 'block' : 'none';
         if(tab === 'scanner') { updateScanner(); if(!scanInt) scanInt = setInterval(updateScanner, 5000); }
         else { clearInterval(scanInt); scanInt = null; }
+    }
+
+    function setScannerMode(mode) {
+        currentScannerTab = mode;
+        document.getElementById('tab-meme').classList.toggle('active', mode === 'meme');
+        document.getElementById('tab-spot').classList.toggle('active', mode === 'spot');
+        updateScanner();
     }
 
     async function checkAuth() {
@@ -266,35 +272,58 @@
             const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
             const data = await res.json();
             const list = document.getElementById('scanner-list');
-            let candidates = data.filter(c => {
-                const change = parseFloat(c.priceChangePercent);
-                const volume = parseFloat(c.quoteVolume);
-                return c.symbol.endsWith('USDT') && change >= 0 && change <= 15 && volume > 5000000;
-            }).map(c => {
-                const currentVol = parseFloat(c.quoteVolume);
-                const prevVol = lastVolMap.get(c.symbol) || currentVol;
-                const volIncrease = prevVol > 0 ? ((currentVol - prevVol) / prevVol) * 100 : 0;
-                lastVolMap.set(c.symbol, currentVol);
-                return { ...c, volIncrease };
-            }).sort((a,b) => b.volIncrease - a.volIncrease).slice(0, 10);
+            
+            let candidates;
+            if (currentScannerTab === 'meme') {
+                candidates = data.filter(c => {
+                    const change = parseFloat(c.priceChangePercent);
+                    const volume = parseFloat(c.quoteVolume);
+                    return c.symbol.endsWith('USDT') && change >= 0 && change <= 15 && volume > 5000000;
+                }).map(c => {
+                    const currentVol = parseFloat(c.quoteVolume);
+                    const prevVol = lastVolMap.get(c.symbol) || currentVol;
+                    const volIncrease = prevVol > 0 ? ((currentVol - prevVol) / prevVol) * 100 : 0;
+                    lastVolMap.set(c.symbol, currentVol);
+                    return { ...c, volIncrease, type: 'MEME' };
+                }).sort((a,b) => b.volIncrease - a.volIncrease).slice(0, 10);
+            } else {
+                candidates = data.filter(c => {
+                    const change = parseFloat(c.priceChangePercent);
+                    const volume = parseFloat(c.quoteVolume);
+                    const high = parseFloat(c.highPrice);
+                    const low = parseFloat(c.lowPrice);
+                    const last = parseFloat(c.lastPrice);
+                    const priceActivity = (high - low) / last; 
+
+                    return c.symbol.endsWith('USDT') && 
+                           change >= -1 && change <= 2 && 
+                           volume > 15000000 && 
+                           priceActivity > 0.002;
+                }).map(c => ({ ...c, volIncrease: 0, type: 'EXPLOSION' }))
+                  .sort((a,b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume)).slice(0, 10);
+            }
 
             if (candidates.length > 0) {
                 let htmlContent = '';
                 candidates.forEach(c => {
                     const change = parseFloat(c.priceChangePercent);
+                    const isExplosion = c.type === 'EXPLOSION';
                     const isSpike = c.volIncrease > 0.8; 
-                    const isBoldEntry = isSpike && (change > 2 && change < 10);
+                    const isBoldEntry = (isSpike && change > 2) || (isExplosion);
+                    const borderColor = isExplosion ? 'var(--ghost)' : 'var(--green)';
+                    const tagLabel = isExplosion ? 'ACCUMULATION 🐳' : 'BOLD ENTRY 🔥';
+
                     htmlContent += `
-                        <div class="scan-item ${isSpike ? 'spike' : ''}" style="border-left: 5px solid ${isBoldEntry ? 'var(--green)' : 'var(--ghost)'}">
+                        <div class="scan-item ${isSpike ? 'spike' : ''}" style="border-left: 5px solid ${isBoldEntry ? borderColor : 'var(--gold)'}">
                             <div style="text-align:right">
                                 <div style="color:var(--gold); font-weight:bold; font-size:16px; display:flex; align-items:center;">
-                                    ${isSpike ? '🚀 ' : ''}${c.symbol}
-                                    ${isBoldEntry ? '<span class="bold-tag">BOLD ENTRY 🔥</span>' : ''}
+                                    ${(isSpike || isExplosion) ? '🚀 ' : ''}${c.symbol}
+                                    ${isBoldEntry ? `<span class="bold-tag" style="background:${borderColor}">${tagLabel}</span>` : ''}
                                 </div>
                                 <div style="color:var(--green); font-size:12px; font-weight:bold;">PRE-PUMP: ${change}%</div>
                                 <div style="color:#666; font-size:10px;">VOLUME: ${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div>
                             </div>
-                            <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--gold); color:#000; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold; box-shadow: 0 4px 10px rgba(251,191,36,0.2);">قنص 🎯</button>
+                            <button onclick="startRadar('${c.symbol}', 'spot')" style="background:${isExplosion ? 'var(--ghost)' : 'var(--gold)'}; color:#000; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold;">قنص 🎯</button>
                         </div>
                     `;
                 });
@@ -335,11 +364,14 @@
             document.getElementById('buy-sell-display').innerText = `BUY: ${buyP.toFixed(1)}% | SELL: ${sellP.toFixed(1)}%`;
             let buyBalls = Math.round(buyP / 10), sellBalls = 10 - buyBalls;
             document.getElementById('power-bar').innerHTML = '<div class="ball" style="background:var(--green)"></div>'.repeat(buyBalls) + '<div class="ball" style="background:var(--red)"></div>'.repeat(sellBalls);
+            
             const sig = document.getElementById('sig-box');
             sig.innerText = buyP > 50 ? "🟢 SIGNAL: BULLISH" : "🔴 SIGNAL: BEARISH";
             sig.className = buyP > 50 ? "sig-bullish" : "sig-bearish";
+            
             let topAsk = asks.sort((a,b) => (b.v*b.p) - (a.v*a.p))[0], topBid = bids.sort((a,b) => (b.v*b.p) - (a.v*a.p))[0];
             drawWallLine(topAsk, 'sell'); drawWallLine(topBid, 'buy');
+            
             document.getElementById('s-walls').innerHTML = `<div style="color:var(--red); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS:</div>` + asks.slice(0, 3).map(a => `<div class="row"><span>Vol: ${(a.v*a.p/1000000).toFixed(2)}M</span><span>$${a.p.toLocaleString()}</span></div>`).join('');
             document.getElementById('b-walls').innerHTML = `<div style="color:var(--green); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS:</div>` + bids.slice(0, 3).map(b => `<div class="row"><span>Vol: ${(b.v*b.p/1000000).toFixed(2)}M</span><span>$${b.p.toLocaleString()}</span></div>`).join('');
             
@@ -357,10 +389,30 @@
             }
 
             const aiDec = document.getElementById('ai-decision'), aiTar = document.getElementById('ai-target'), aiC = document.getElementById('ai-conf');
-            if(buyP > 60) { sigBuffer.buy++; sigBuffer.sell = 0; } else if(sellP > 60) { sigBuffer.sell++; sigBuffer.buy = 0; } else { sigBuffer.buy = 0; sigBuffer.sell = 0; }
-            if(sigBuffer.buy >= 2) { aiDec.innerText = "🟢 STRONG BUY"; aiDec.style.color = "var(--green)"; aiTar.innerText = "$" + topAsk.p.toLocaleString(); aiC.innerText = "94%"; }
-            else if(sigBuffer.sell >= 2) { aiDec.innerText = "🔴 STRONG SELL"; aiDec.style.color = "var(--red)"; aiTar.innerText = "$" + topBid.p.toLocaleString(); aiC.innerText = "91%"; }
-            else { aiDec.innerText = "🟡 WAIT / SIDEWAYS"; aiDec.style.color = "var(--gold)"; aiTar.innerText = "N/A"; aiC.innerText = "45%"; }
+            
+            let priceToWall = 0;
+            if (topAsk) priceToWall = ((topAsk.p - currentPrice) / currentPrice) * 100;
+
+            if(buyP > 55 && priceToWall >= 5 && priceToWall <= 12) { 
+                sigBuffer.buy++; sigBuffer.sell = 0; 
+            } else if(sellP > 60) { 
+                sigBuffer.sell++; sigBuffer.buy = 0; 
+            } else { 
+                sigBuffer.buy = 0; sigBuffer.sell = 0; 
+            }
+
+            if(sigBuffer.buy >= 1) { 
+                aiDec.innerText = "🚀 EXPLOSION READY"; aiDec.style.color = "var(--green)"; 
+                aiTar.innerText = topAsk ? "$" + topAsk.p.toLocaleString() : "--"; 
+                aiC.innerText = "96%"; 
+            } else if(sigBuffer.sell >= 2) { 
+                aiDec.innerText = "🔴 STRONG SELL"; aiDec.style.color = "var(--red)"; 
+                aiTar.innerText = topBid ? "$" + topBid.p.toLocaleString() : "--"; 
+                aiC.innerText = "91%"; 
+            } else { 
+                aiDec.innerText = "🟡 ANALYZING..."; aiDec.style.color = "var(--gold)"; 
+                aiTar.innerText = "N/A"; aiC.innerText = "--"; 
+            }
         } catch (e) {}
     }
 
