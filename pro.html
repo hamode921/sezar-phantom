@@ -1,62 +1,76 @@
-/* --- القسم المضاف: واجهة و منطق انفجار السبوت --- */
-
-// 1. إضافة التبويب الجديد في واجهة القناص
-function updateScanner() {
-    // ... الكود القديم موجود ...
-    // سنضيف زر لاختيار نوع القنص (ميم أو سبوت استثماري)
-    const list = document.getElementById('scanner-list');
-    list.innerHTML = `
-        <div style="display:flex; gap:5px; margin-bottom:15px;">
-            <button class="tab-btn active" id="btn-meme" onclick="switchScannerMode('meme')">🚀 ميم (سريع)</button>
-            <button class="tab-btn" id="btn-spot" onclick="switchScannerMode('spot_invest')">💎 سبوت (انفجار)</button>
-        </div>
-        <div id="scanner-items-container"></div>
-    `;
-    // استدعاء المود الافتراضي
-    if(currentScannerMode === 'spot_invest') updateSpotExplosion(); else updateMemeScanner();
-}
-
-// 2. خوارزمية رصد الانفجار (Spot Explosion Logic)
-async function updateSpotExplosion() {
+async function updateScanner() {
     try {
+        // إضافة أزرار التبديل داخل القائمة
+        const list = document.getElementById('scanner-list');
+        if (!document.getElementById('scanner-tabs')) {
+            list.innerHTML = `
+                <div id="scanner-tabs" style="display:flex; gap:10px; margin-bottom:15px; width:95%;">
+                    <button id="tab-meme" class="tab-btn active" onclick="setScannerMode('meme')" style="font-size:11px; padding:8px;">🛰️ قناص الميم</button>
+                    <button id="tab-spot" class="tab-btn" onclick="setScannerMode('spot')" style="font-size:11px; padding:8px; border-color:var(--ghost); color:var(--ghost);">💎 انفجار السبوت</button>
+                </div>
+                <div id="scanner-items-container"></div>
+            `;
+        }
+
         const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
         const data = await res.json();
         const container = document.getElementById('scanner-items-container');
-        
-        // تصفية العملات: سيولة جيدة + حركة سعرية هادئة (تجميع)
-        let spotCandidates = data.filter(c => {
-            const vol = parseFloat(c.quoteVolume);
-            const change = parseFloat(c.priceChangePercent);
-            return c.symbol.endsWith('USDT') && vol > 10000000 && Math.abs(change) < 3; 
-        });
+        let htmlContent = '';
 
-        // ترتيب حسب "فجوة السعر" أو "دخول السيولة المفاجئ"
-        let html = '';
-        spotCandidates.slice(0, 10).forEach(c => {
-            // هنا نحاكي تحليل "فراغ الجدران" - لو السعر ثابت والسيولة تزيد
-            html += `
-                <div class="scan-item" style="border-left: 4px solid #fbbf24; background: linear-gradient(90deg, #080808, #111);">
-                    <div style="text-align:right">
-                        <div style="color:#fbbf24; font-weight:bold; font-size:16px;">
-                            ${c.symbol} <span style="font-size:10px; color:#888;">(تجميع حيتان 🐳)</span>
-                        </div>
-                        <div style="color:#22c55e; font-size:11px;">جاهزية الانفجار: ⚡ %${(Math.random() * (95 - 70) + 70).toFixed(0)}</div>
-                        <div style="color:#aaa; font-size:9px;">سيولة التجميع: $${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div>
-                    </div>
-                    <button onclick="startRadar('${c.symbol}', 'spot')" class="inline-btn" style="padding:8px 15px; font-size:12px;">تحليل الفراغ 🔭</button>
-                </div>
-            `;
-        });
-        container.innerHTML = html;
-    } catch (e) { console.log("Explosion Error: ", e); }
+        if (currentScannerMode === 'meme') {
+            // منطق الميم الأصلي (ارتفاع فوليوم + تذبذب عالي)
+            let candidates = data.filter(c => {
+                const change = parseFloat(c.priceChangePercent);
+                const volume = parseFloat(c.quoteVolume);
+                return c.symbol.endsWith('USDT') && change >= 0 && change <= 15 && volume > 5000000;
+            }).sort((a,b) => b.priceChangePercent - a.priceChangePercent).slice(0, 10);
+            
+            candidates.forEach(c => {
+                htmlContent += createScanItem(c, 'MEME');
+            });
+        } else {
+            // --- منطق SPOT EXPLOSION (تجميع هادئ + سيولة حيتان) ---
+            let spotExplosion = data.filter(c => {
+                const change = parseFloat(c.priceChangePercent);
+                const volume = parseFloat(c.quoteVolume);
+                // المعيار: سعر مستقر (-2% إلى +3%) + سيولة ضخمة (> 10M)
+                return c.symbol.endsWith('USDT') && change >= -2 && change <= 3 && volume > 10000000;
+            }).sort((a,b) => b.quoteVolume - a.quoteVolume).slice(0, 10);
+
+            spotExplosion.forEach(c => {
+                htmlContent += createScanItem(c, 'EXPLOSION');
+            });
+        }
+        container.innerHTML = htmlContent;
+    } catch (e) { console.error("Scanner Error:", e); }
 }
 
-// 3. تعديل في شاشة الرادار ليدعم تحليل "الفراغ السعري"
-// أضف هذا الجزء داخل دالة updateLiquidity
-if (currentMode === 'spot') {
-    let priceGap = ((asks[0].p - currentPrice) / currentPrice) * 100;
-    if (priceGap > 0.5) {
-        document.getElementById('ai-decision').innerHTML = "🚀 فجوة سعرية مكتشفة!";
-        document.getElementById('ai-decision').style.color = "#a855f7"; // لون جوست
-    }
+// دالة مساعدة لتغيير المود
+function setScannerMode(mode) {
+    currentScannerMode = mode;
+    document.getElementById('tab-meme').classList.toggle('active', mode === 'meme');
+    document.getElementById('tab-spot').classList.toggle('active', mode === 'spot');
+    updateScanner();
+}
+
+// دالة لبناء عنصر القائمة بشكل احترافي
+function createScanItem(c, type) {
+    const change = parseFloat(c.priceChangePercent);
+    const isExplosion = type === 'EXPLOSION';
+    const borderColor = isExplosion ? 'var(--ghost)' : 'var(--green)';
+    const tagText = isExplosion ? 'ACCUMULATION 🐳' : 'PUMPING 🚀';
+    
+    return `
+        <div class="scan-item" style="border-left: 4px solid ${borderColor}; margin-bottom:10px;">
+            <div style="text-align:right">
+                <div style="color:var(--gold); font-weight:bold; font-size:16px;">
+                    ${c.symbol} <span class="bold-tag" style="background:${borderColor}">${tagText}</span>
+                </div>
+                <div style="color:${change >= 0 ? 'var(--green)' : 'var(--red)'}; font-size:12px; font-weight:bold;">
+                    CHANGE: ${change}% | VOL: ${(parseFloat(c.quoteVolume)/1000000).toFixed(1)}M
+                </div>
+            </div>
+            <button onclick="startRadar('${c.symbol}', 'spot')" style="background:${borderColor}; color:#000; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">تحليل 🔭</button>
+        </div>
+    `;
 }
