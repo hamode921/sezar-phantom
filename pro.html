@@ -1,68 +1,51 @@
-async function updateScanner() {
-        try {
-            const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
-            const data = await res.json();
-            const list = document.getElementById('scanner-list');
-            
-            let candidates;
-            if (currentScannerTab === 'meme') {
-                candidates = data.filter(c => {
-                    const change = parseFloat(c.priceChangePercent);
-                    const volume = parseFloat(c.quoteVolume);
-                    return c.symbol.endsWith('USDT') && change >= 0 && change <= 15 && volume > 5000000;
-                }).map(c => {
-                    const currentVol = parseFloat(c.quoteVolume);
-                    const prevVol = lastVolMap.get(c.symbol) || currentVol;
-                    const volIncrease = prevVol > 0 ? ((currentVol - prevVol) / prevVol) * 100 : 0;
-                    lastVolMap.set(c.symbol, currentVol);
-                    return { ...c, volIncrease, type: 'MEME' };
-                }).sort((a,b) => b.volIncrease - a.volIncrease).slice(0, 10);
-            } else {
-                // --- التعديل هنا: فلتر "القاع المستقر" لضمان عدم الشراء والسعر ينهار ---
-                candidates = data.filter(c => {
-                    const change = parseFloat(c.priceChangePercent);
-                    const volume = parseFloat(c.quoteVolume);
-                    const high = parseFloat(c.highPrice);
-                    const low = parseFloat(c.lowPrice);
-                    const last = parseFloat(c.lastPrice);
-                    
-                    // حساب القرب من القاع: هل السعر ضمن آخر 10% من نطاق اليوم؟
-                    const priceRange = high - low;
-                    const positionInDayRange = (last - low) / priceRange;
+<div class="ice-card">
+    <div style="font-size:11px; color:var(--ghost); display:flex; justify-content:space-between; font-weight:bold; margin-bottom:10px;">
+        <span>ICEBERG DETECTOR</span>
+        <span id="ice-threshold-display" style="background:#4c1d95; color:#fff; padding:2px 8px; border-radius:10px;">50K</span>
+    </div>
+    
+    <div style="padding: 10px 0;">
+        <input type="range" id="ice-sensitivity" min="1000" max="100000" step="1000" value="50000" 
+               style="width: 100%; accent-color: var(--ghost); cursor: pointer;"
+               oninput="document.getElementById('ice-threshold-display').innerText = (this.value >= 1000 ? (this.value/1000).toFixed(0) + 'K' : this.value)">
+    </div>
 
-                    return c.symbol.endsWith('USDT') && 
-                           volume > 20000000 && // سيولة عالية لضمان وجود حيتان
-                           change > -1.5 && // استبعاد العملات التي تهبط بقوة (أكثر من 1.5% هبوط يخرجها من القائمة)
-                           positionInDayRange < 0.15; // السعر بالقرب من قاعه اليومي
-                }).map(c => ({ ...c, volIncrease: 0, type: 'EXPLOSION' }))
-                  .sort((a,b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume)).slice(0, 10);
-            }
+    <div id="iceberg-list"></div>
+</div>
 
-            if (candidates.length > 0) {
-                let htmlContent = '';
-                candidates.forEach(c => {
-                    const change = parseFloat(c.priceChangePercent);
-                    const isExplosion = c.type === 'EXPLOSION';
-                    const isSpike = c.volIncrease > 0.8; 
-                    const isBoldEntry = (isSpike && change > 2) || (isExplosion);
-                    const borderColor = isExplosion ? 'var(--ghost)' : 'var(--green)';
-                    const tagLabel = isExplosion ? 'ACCUMULATION 🐳' : 'BOLD ENTRY 🔥';
+<script>
+async function updateIceberg() {
+    try {
+        const url = currentMode === 'futures' ? `https://fapi.binance.com/fapi/v1/depth?symbol=${currentSymbol}&limit=5` : `https://api.binance.com/api/v3/depth?symbol=${currentSymbol}&limit=5`;
+        const res = await fetch(url);
+        const data = await res.json();
+        let bids = data.bids, asks = data.asks;
+        let found = [];
 
-                    htmlContent += `
-                        <div class="scan-item ${isSpike ? 'spike' : ''}" style="border-left: 5px solid ${isBoldEntry ? borderColor : 'var(--gold)'}">
-                            <div style="text-align:right">
-                                <div style="color:var(--gold); font-weight:bold; font-size:16px; display:flex; align-items:center;">
-                                    ${(isSpike || isExplosion) ? '🚀 ' : ''}${c.symbol}
-                                    ${isBoldEntry ? `<span class="bold-tag" style="background:${borderColor}">${tagLabel}</span>` : ''}
-                                </div>
-                                <div style="color:var(--green); font-size:12px; font-weight:bold;">PRE-PUMP: ${change}%</div>
-                                <div style="color:#666; font-size:10px;">VOLUME: ${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div>
-                            </div>
-                            <button onclick="startRadar('${c.symbol}', 'spot')" style="background:${isExplosion ? 'var(--ghost)' : 'var(--gold)'}; color:#000; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold;">قنص 🎯</button>
-                        </div>
-                    `;
-                });
-                list.innerHTML = htmlContent;
-            }
-        } catch (e) {}
-    }
+        // جلب قيمة الحساسية من السلايدر
+        const sensitivity = parseInt(document.getElementById('ice-sensitivity').value);
+
+        if (lastBids.length > 0 && bids[0][0] === lastBids[0][0]) {
+            let d = parseFloat(bids[0][1]) - parseFloat(lastBids[0][1]);
+            let amt = d * bids[0][0]; 
+            if (amt > sensitivity) found.push({p: bids[0][0], m: amt, t: 'Buyer'}); // المقارنة بالسلايدر
+        }
+        if (lastAsks.length > 0 && asks[0][0] === lastAsks[0][0]) {
+            let d = parseFloat(asks[0][1]) - parseFloat(lastAsks[0][1]);
+            let amt = d * asks[0][0]; 
+            if (amt > sensitivity) found.push({p: asks[0][0], m: amt, t: 'Seller'}); // المقارنة بالسلايدر
+        }
+        
+        if(found.length > 0) {
+            const list = document.getElementById('iceberg-list');
+            found.forEach(ice => {
+                const row = document.createElement('div'); row.className = 'row';
+                const mVal = ice.m >= 1000000 ? (ice.m/1000000).toFixed(2) + "M" : (ice.m/1000).toFixed(1) + "K";
+                row.innerHTML = `<span style="color:${ice.t==='Buyer'?'var(--green)':'var(--red)'}">${ice.t.toUpperCase()}</span><span style="color:var(--gold)">$${mVal}</span><span>$${parseFloat(ice.p).toLocaleString()}</span>`;
+                list.prepend(row); if (list.children.length > 5) list.removeChild(list.lastChild);
+            });
+        }
+        lastBids = bids; lastAsks = asks;
+    } catch (e) {}
+}
+</script>
