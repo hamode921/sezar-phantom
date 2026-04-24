@@ -8,32 +8,32 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <style>
         :root { --gold: #fbbf24; --ghost: #a855f7; --bg: #000; --card: #080808; --red: #ef4444; --green: #22c55e; }
-        body { background: var(--bg); color: #fff; font-family: monospace; margin: 0; padding: 10px; overflow-x: hidden; text-align: center; }
-        .nav-tabs { display: flex; gap: 10px; width: 100%; max-width: 450px; margin: 20px auto; }
+        body { background: var(--bg); color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 10px; overflow-x: hidden; }
+        .nav-tabs { display: flex; gap: 10px; width: 95%; max-width: 450px; margin-bottom: 20px; }
         .tab-btn { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--gold); background: #000; color: var(--gold); font-weight: bold; cursor: pointer; }
         .tab-btn.active { background: var(--gold); color: #000; }
-        #search-screen, #scanner-screen, #radar-ui { display: none; width: 100%; max-width: 450px; margin: 0 auto; }
-        .search-input { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 15px; width: 90%; border-radius: 10px; font-size: 16px; margin-bottom: 20px; text-align: center; }
-        .scan-item { background: #080808; border: 1px solid #222; padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid var(--gold); }
-        .spike { animation: blink 1s infinite; border-left-color: var(--green); }
-        @keyframes blink { 0%, 100% { background: #080808; } 50% { background: #062010; } }
-        .whale-live-box { background: #0a0a0a; border: 1px solid var(--gold); border-radius: 10px; margin: 15px 0; padding: 15px; }
-        .whale-grid { display: flex; justify-content: space-around; }
-        .whale-val { font-size: 18px; font-weight: bold; }
-        .price-box { font-size: 32px; font-weight: bold; color: #00d2ff; margin: 15px 0; }
+        #search-screen, #scanner-screen, #radar-ui { display: none; width: 100%; max-width: 450px; text-align: center; }
+        .search-input { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 15px; width: 90%; border-radius: 12px; margin-bottom: 20px; outline: none; text-align: center; }
+        .scan-item { background: #080808; border: 1px solid #222; padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--gold); }
+        .spike { border-color: var(--green); animation: blink 1s infinite; }
+        @keyframes blink { 0% { background: #080808; } 50% { background: #062010; } 100% { background: #080808; } }
+        .price-box { font-size: 32px; font-weight: 900; color: #00d2ff; margin: 15px 0; border: 1px dashed #333; padding: 10px; }
+        .whale-live-box { background: #0a0a0a; border: 1px solid var(--gold); border-radius: 10px; padding: 15px; margin: 15px 0; }
+        .whale-grid { display: flex; justify-content: space-between; }
+        .whale-val { font-size: 16px; font-weight: bold; }
         .ai-signal-box { background: #111; border: 1px double var(--gold); border-radius: 10px; padding: 15px; margin: 15px 0; }
-        .row { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #222; font-size: 13px; }
+        .row { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #111; font-size: 13px; }
     </style>
 </head>
 <body onload="checkAuth()">
 
-<div id="search-screen">
-    <h2 style="color:var(--gold)">SEZAR-PHANTOM</h2>
+<div id="search-screen" style="display:block;">
+    <h2 style="color:var(--gold)">「 SEZAR-PHANTOM 」</h2>
     <div class="nav-tabs">
         <button class="tab-btn active" onclick="switchTab('search')">🔍 بحث</button>
         <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص</button>
     </div>
-    <input type="text" class="search-input" id="search-input" placeholder="ادخل اسم العملة..." oninput="searchCoins()">
+    <input type="text" class="search-input" id="search-input" placeholder="🔍 ابحث عن عملة..." oninput="searchCoins()">
     <div id="results-list"></div>
 </div>
 
@@ -43,26 +43,36 @@
 </div>
 
 <div id="radar-ui">
-    <button onclick="goBack()" style="float:left; background:var(--gold); border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">🔙</button>
-    <div id="current-coin-name" style="color:var(--gold); font-weight:bold; margin-bottom:10px;"></div>
+    <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+        <button onclick="goBack()" style="background:var(--gold); border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-weight:bold;">🔙</button>
+        <span id="current-coin-name" style="color:var(--gold); font-weight:bold;"></span>
+    </div>
     <div class="price-box" id="coin-price">$0.00</div>
-    
-    <div style="width:100%; height:300px; background:#000; border:1px solid #333; border-radius:10px; overflow:hidden;">
+    <div style="width:100%; height:300px; border:1px solid #222; border-radius:10px; overflow:hidden;">
         <iframe id="chart-frame" style="width:100%; height:100%; border:none;"></iframe>
     </div>
 
     <div class="whale-live-box">
-        <div style="font-size:12px; color:var(--gold); margin-bottom:10px;">🐳 حيتان لايف (أوامر حقيقية)</div>
+        <div style="font-size:11px; color:var(--gold); margin-bottom:10px;">🐳 رصد حيتان (LIVE)</div>
         <div class="whale-grid">
-            <div><div style="color:var(--red); font-size:10px;">بيع</div><div class="whale-val" id="short-whales" style="color:var(--red)">0</div></div>
-            <div><div style="color:var(--gold); font-size:10px;">الحالة</div><div id="whale-ratio">ANALYZING</div></div>
-            <div><div style="color:var(--green); font-size:10px;">شراء</div><div class="whale-val" id="long-whales" style="color:var(--green)">0</div></div>
+            <div class="whale-col">
+                <div style="font-size:10px; color:#888;">بيع</div>
+                <div class="whale-val" id="short-whales" style="color:var(--red)">0</div>
+            </div>
+            <div class="whale-col" style="border-left:1px solid #222; border-right:1px solid #222; padding:0 10px;">
+                <div style="font-size:10px; color:#888;">السيولة</div>
+                <div class="whale-val" id="whale-ratio" style="color:var(--gold)">SPOT</div>
+            </div>
+            <div class="whale-col">
+                <div style="font-size:10px; color:#888;">شراء</div>
+                <div class="whale-val" id="long-whales" style="color:var(--green)">0</div>
+            </div>
         </div>
     </div>
 
     <div class="ai-signal-box">
         <div id="ai-decision" style="font-size:20px; font-weight:bold;">ANALYZING...</div>
-        <div style="font-size:11px; color:#888;">الدقة: <span id="ai-conf">--</span></div>
+        <div style="font-size:10px; color:#888; margin-top:5px;">دقة الإشارة: <span id="ai-conf">--</span></div>
     </div>
     <div id="b-walls"></div>
     <div id="s-walls"></div>
@@ -70,15 +80,15 @@
 
 <script>
     let currentSymbol = '', allCoins = [], pInt, lInt, scanInt, lastVolMap = new Map();
-    // قائمة العملات المستقرة والوهمية للحظر النهائي
-    const blackList = ['USDC', 'FDUSD', 'TUSD', 'USDP', 'DAI', 'EUR', 'USD1', 'BUSD', 'GBP', 'PAXG'];
+    // القائمة السوداء لمنع العملات المستقرة نهائياً
+    const blackList = ['USDC', 'FDUSD', 'TUSD', 'USDP', 'DAI', 'BUSD', 'EUR', 'GBP', 'PAXG', 'AEUR'];
 
-    function checkAuth() { document.getElementById('search-screen').style.display = 'block'; loadCoins(); }
-
-    async function loadCoins() {
+    async function checkAuth() { 
         const res = await fetch('https://api.binance.com/api/v3/exchangeInfo');
         const data = await res.json();
+        // تصفية العملات المستقرة من القائمة الأساسية
         allCoins = data.symbols.filter(s => s.symbol.endsWith('USDT') && !blackList.some(b => s.symbol.includes(b))).map(s => s.symbol);
+        searchCoins();
     }
 
     function switchTab(tab) {
@@ -92,11 +102,13 @@
         try {
             const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
             const data = await res.json();
-            // الفلتر المطلوب: السعر بين 1 و 50 دولار + استبعاد المستقرة + سيولة عالية
+            
+            // الفلتر الصارم: السعر بين 1 و 50 + منع المستقرة + حجم تداول عالي
             let candidates = data.filter(c => {
                 const price = parseFloat(c.lastPrice);
                 const vol = parseFloat(c.quoteVolume);
-                return c.symbol.endsWith('USDT') && !blackList.some(b => c.symbol.includes(b)) && price >= 1.0 && price <= 50.0 && vol > 5000000;
+                const isStable = blackList.some(b => c.symbol.includes(b));
+                return c.symbol.endsWith('USDT') && !isStable && price >= 1.0 && price <= 50.0 && vol > 5000000;
             }).map(c => {
                 const curVol = parseFloat(c.quoteVolume);
                 const prevVol = lastVolMap.get(c.symbol) || curVol;
@@ -107,12 +119,12 @@
 
             let html = '';
             candidates.forEach(c => {
-                html += `<div class="scan-item ${c.volInc > 1.0 ? 'spike' : ''}">
+                html += `<div class="scan-item ${c.volInc > 1.2 ? 'spike' : ''}">
                     <div style="text-align:right">
                         <div style="color:var(--gold); font-weight:bold;">${c.symbol}</div>
-                        <div style="font-size:11px;">$${parseFloat(c.lastPrice).toFixed(2)} | نمو سيولة: +${c.volInc.toFixed(2)}%</div>
+                        <div style="font-size:11px;">السعر: $${parseFloat(c.lastPrice).toFixed(2)} | +${c.volInc.toFixed(2)}% سيولة</div>
                     </div>
-                    <button onclick="startRadar('${c.symbol}')" style="background:var(--gold); border:none; padding:8px 15px; border-radius:8px; font-weight:bold;">تحليل</button>
+                    <button onclick="startRadar('${c.symbol}')" style="background:var(--gold); border:none; padding:8px 15px; border-radius:8px; font-weight:bold;">قنص</button>
                 </div>`;
             });
             document.getElementById('scanner-list').innerHTML = html;
@@ -143,9 +155,9 @@
             const bids = data.bids.map(b => ({p: parseFloat(b[0]), v: parseFloat(b[1])}));
             const asks = data.asks.map(a => ({p: parseFloat(a[0]), v: parseFloat(a[1])}));
 
-            // رصد الحيتان: طلبات شراء أو بيع تزيد عن 30,000 دولار
-            const whaleLongs = bids.filter(b => (b.p * b.v) > 30000).length;
-            const whaleShorts = asks.filter(a => (a.p * a.v) > 30000).length;
+            // رصد حيتان حقيقي: أي طلب شراء/بيع فوق 25,000 دولار
+            const whaleLongs = bids.filter(b => (b.p * b.v) > 25000).length;
+            const whaleShorts = asks.filter(a => (a.p * a.v) > 25000).length;
 
             document.getElementById('long-whales').innerText = whaleLongs;
             document.getElementById('short-whales').innerText = whaleShorts;
@@ -156,13 +168,13 @@
 
             const ai = document.getElementById('ai-decision');
             if(buyPerc > 60 && whaleLongs > whaleShorts) {
-                ai.innerText = "🚀 انفجار وشيك (شراء)"; ai.style.color = "var(--green)";
-                document.getElementById('ai-conf').innerText = "94%";
+                ai.innerText = "🚀 دخول - انفجار"; ai.style.color = "var(--green)";
+                document.getElementById('ai-conf').innerText = "95%";
             } else if (buyPerc < 40) {
-                ai.innerText = "🔴 تصريف حيتان (بيع)"; ai.style.color = "var(--red)";
-                document.getElementById('ai-conf').innerText = "91%";
+                ai.innerText = "🔴 خروج - تصريف"; ai.style.color = "var(--red)";
+                document.getElementById('ai-conf').innerText = "92%";
             } else {
-                ai.innerText = "🟡 منطقة تجميع"; ai.style.color = "var(--gold)";
+                ai.innerText = "🟡 تجميع هادئ"; ai.style.color = "var(--gold)";
                 document.getElementById('ai-conf').innerText = "50%";
             }
         } catch(e){}
@@ -170,11 +182,16 @@
 
     function searchCoins() {
         const q = document.getElementById('search-input').value.toUpperCase();
-        let html = '';
+        const list = document.getElementById('results-list');
+        list.innerHTML = '';
         allCoins.filter(s => s.includes(q)).slice(0, 10).forEach(s => {
-            html += `<div class="coin-item" onclick="startRadar('${s}')" style="padding:15px; border-bottom:1px solid #222; cursor:pointer;">${s}</div>`;
+            const div = document.createElement('div');
+            div.className = 'scan-item';
+            div.style.cursor = 'pointer';
+            div.innerHTML = `<span>${s}</span><span style="color:var(--gold)">تحليل 🔍</span>`;
+            div.onclick = () => startRadar(s);
+            list.appendChild(div);
         });
-        document.getElementById('results-list').innerHTML = html;
     }
     function goBack() { switchTab('search'); }
 </script>
