@@ -7,7 +7,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <style>
-        :root { --gold: #fbbf24; --ghost: #a855f7; --bg: #000; --card: #080808; --red: #ef4444; --green: #22c55e; --blue: #3b82f6; }
+        :root { --gold: #fbbf24; --ghost: #a855f7; --bg: #000; --card: #080808; --red: #ef4444; --green: #22c55e; --blue: #3b82f6; /*Blue only for tabs distinguishing*/ }
         
         #zoom-wrapper { width: 100vw; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         #zoom-container { transition: transform 0.3s ease; transform-origin: top center; width: 100%; display: flex; flex-direction: column; align-items: center; }
@@ -70,19 +70,19 @@
         .tab-btn { flex: 1; padding: 10px 5px; border-radius: 10px; border: 1px solid var(--gold); background: #000; color: var(--gold); font-weight: bold; cursor: pointer; font-size: 11px; }
         .tab-btn.active { background: var(--gold); color: #000; }
         
-        /* التوحيد الكامل للتصميم */
+        /* مطابقة 100% للتصميم الأول */
         .scan-item, .bottom-scan-item { background: #080808; border: 1px solid #222; padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
         
         .scan-item { border-left: 5px solid var(--ghost); }
         .scan-item.spike { border-color: var(--green); box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); animation: blink 1s infinite; }
         
-        .bottom-scan-item { border-left: 5px solid var(--blue); }
-        .accumulation-tag { background: var(--blue); color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 4px; margin-right: 5px; }
-
+        /* تعديل تصميم قسم القيعان ليطابق الميم 100% */
+        .bottom-scan-item { border-left: 5px solid var(--blue); } /* الحفاظ على لون التبويب للفصل البرمجي فقط */
+        .card-text { text-align: right; }
+        .acc-text { color: var(--blue); font-size: 12px; font-weight: bold; }
+        .tag-row { display: flex; align-items: center; margin-top: 2px; }
+        
         @keyframes blink { 0% { background: #080808; } 50% { background: #062010; } 100% { background: #080808; } }
-        .bold-tag { background: var(--green); color: #000; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-right: 5px; animation: pulse 0.5s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-
         .contact-dev { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); padding: 15px 0; display: flex; justify-content: space-around; border-top: 1px solid #222; z-index: 100; }
         .contact-dev a { color: var(--gold); text-decoration: none; font-size: 11px; border: 1px solid var(--gold); padding: 8px 16px; border-radius: 5px; font-weight: bold; }
     </style>
@@ -208,16 +208,18 @@
         const query = document.getElementById('search-input').value.toUpperCase();
         const list = document.getElementById('results-list');
         list.innerHTML = '';
-        allCoins.filter(c => c.s.includes(query)).slice(0, 10).forEach(c => {
+        let uniqueCoins = {};
+        allCoins.filter(c => c.s.includes(query)).forEach(c => { if (!uniqueCoins[c.s] || c.m === 'futures') uniqueCoins[c.s] = c; });
+        Object.values(uniqueCoins).slice(0, 15).forEach(c => {
             const item = document.createElement('div');
             item.className = 'coin-item';
             item.innerHTML = `<div><span style="font-weight:bold;">${c.s}</span></div><div style="color:var(--gold); font-size:11px;">تحليل 🔭</div>`;
-            item.onclick = () => startRadar(c.s, 'spot');
+            item.onclick = () => startRadar(c.s, c.m);
             list.appendChild(item);
         });
     }
 
-    // قناص القيعان - نفس التصميم الأصلي للميم
+    // قناص القيعان - مطابقة التصميم الأصلي للميم 100%
     async function updateBottomScanner() {
         try {
             const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
@@ -232,14 +234,17 @@
             bottomCoins.forEach(c => {
                 html += `
                     <div class="bottom-scan-item">
-                        <div style="text-align:right">
-                            <div style="color:var(--gold); font-weight:bold; font-size:16px; display:flex; align-items:center;">
-                                ${c.symbol} <span class="accumulation-tag">💎 تجميع حيتان 🐳</span>
+                        <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--blue); color:#fff; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold;">متابعة 🎯</button>
+                        <div class="card-text">
+                            <div style="color:var(--gold); font-weight:bold; font-size:16px;">
+                                ${c.symbol}
                             </div>
-                            <div style="color:var(--blue); font-size:12px; font-weight:bold;">الهدف المتوقع: +15% 📈</div>
+                            <div class="tag-row">
+                                <span class="accumulation-tag">💎 تجميع حيتان</span>
+                                <span style="color:var(--green); font-size:12px; font-weight:bold;">الهدف: +15% 📈</span>
+                            </div>
                             <div style="color:#666; font-size:10px;">VOLUME: ${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div>
                         </div>
-                        <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--blue); color:#fff; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold;">متابعة 🎯</button>
                     </div>`;
             });
             list.innerHTML = html;
@@ -267,6 +272,7 @@
                 const isSpike = c.volIncrease > 0.8;
                 html += `
                     <div class="scan-item ${isSpike ? 'spike' : ''}">
+                        <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--gold); color:#000; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold;">قنص 🎯</button>
                         <div style="text-align:right">
                             <div style="color:var(--gold); font-weight:bold; font-size:16px;">
                                 ${isSpike ? '🚀 ' : ''}${c.symbol}
@@ -274,7 +280,6 @@
                             <div style="color:var(--green); font-size:12px; font-weight:bold;">PRE-PUMP: ${c.priceChangePercent}%</div>
                             <div style="color:#666; font-size:10px;">VOLUME: ${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div>
                         </div>
-                        <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--gold); color:#000; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold;">قنص 🎯</button>
                     </div>`;
             });
             list.innerHTML = html;
