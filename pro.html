@@ -55,14 +55,6 @@
         #ai-decision { font-size: 18px; font-weight: 900; margin: 5px 0; }
         .ai-meta { display: flex; justify-content: space-around; font-size: 10px; color: #888; margin-top: 5px; }
 
-        /* الأوامر المضافة للحيتان لايف */
-        .whale-live-box { background: #0a0a0a; border: 1px solid var(--gold); border-radius: 10px; margin: 15px 0; padding: 10px; }
-        .whale-header { font-size: 10px; color: var(--gold); font-weight: bold; text-align: center; border-bottom: 1px solid #222; padding-bottom: 5px; margin-bottom: 10px; }
-        .whale-grid { display: flex; justify-content: space-between; text-align: center; }
-        .whale-col { flex: 1; }
-        .whale-label { font-size: 9px; color: #666; margin-bottom: 4px; }
-        .whale-val { font-size: 12px; font-weight: bold; }
-
         #sig-box { text-align: center; font-weight: bold; padding: 15px; margin-top: 30px; border-radius: 5px; font-size: 16px; }
         .sig-bullish { background: #064e3b; color: #22c55e; border: 1px solid #22c55e; }
         .sig-bearish { background: #450a0a; color: #ef4444; border: 1px solid #ef4444; }
@@ -137,27 +129,6 @@
                 <button class="inline-btn" onclick="setZoom(1.0)">🏠</button>
             </div>
             <div id="power-bar"></div>
-
-            <div class="whale-live-box">
-                <div class="whale-header">🐳 WHALE POSITIONS (LIVE)</div>
-                <div class="whale-grid">
-                    <div class="whale-col">
-                        <div class="whale-label">SHORT WHALES</div>
-                        <div class="whale-val" id="short-whales" style="color:var(--red)">N/A</div>
-                        <div id="total-short-usdt" style="font-size: 9px; color: #888; margin-top: 2px;">$0.00M</div>
-                    </div>
-                    <div class="whale-col" style="border-left:1px solid #222; border-right:1px solid #222;">
-                        <div class="whale-label">NET RATIO</div>
-                        <div class="whale-val" id="whale-ratio" style="color:var(--gold)">SPOT</div>
-                    </div>
-                    <div class="whale-col">
-                        <div class="whale-label">LONG WHALES</div>
-                        <div class="whale-val" id="long-whales" style="color:var(--green)">N/A</div>
-                        <div id="total-long-usdt" style="font-size: 9px; color: #888; margin-top: 2px;">$0.00M</div>
-                    </div>
-                </div>
-            </div>
-
             <div id="s-walls"></div>
             <div class="ai-signal-box">
                 <div style="font-size:11px;color:var(--gold);font-weight:bold;border-bottom:1px solid #222;padding-bottom:5px;margin-bottom:8px;">🤖 CAESAR SIGNAL AI</div>
@@ -261,11 +232,14 @@
         });
     }
 
+    // --- خوارزمية القلب الحديدي المحدثة (The Stable Pro Scanner) ---
     async function updateScanner() {
         try {
             const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
             const data = await res.json();
             const list = document.getElementById('scanner-list');
+
+            // تصفية العملات: سيولة فوق الـ 5 مليون وصعود لسه في بدايته
             let candidates = data.filter(c => {
                 const change = parseFloat(c.priceChangePercent);
                 const volume = parseFloat(c.quoteVolume);
@@ -278,12 +252,14 @@
                 return { ...c, volIncrease };
             }).sort((a,b) => b.volIncrease - a.volIncrease).slice(0, 10);
 
+            // تحديث القائمة فقط إذا وجدنا فرص حقيقية (للمحافظة على الثبات)
             if (candidates.length > 0) {
                 let htmlContent = '';
                 candidates.forEach(c => {
                     const change = parseFloat(c.priceChangePercent);
                     const isSpike = c.volIncrease > 0.8; 
                     const isBoldEntry = isSpike && (change > 2 && change < 10);
+
                     htmlContent += `
                         <div class="scan-item ${isSpike ? 'spike' : ''}" style="border-left: 5px solid ${isBoldEntry ? 'var(--green)' : 'var(--ghost)'}">
                             <div style="text-align:right">
@@ -322,7 +298,6 @@
     function stopIntervals() { clearInterval(pInt); clearInterval(lInt); clearInterval(iInt); clearInterval(tInt); timeLeft = 30; }
 
     async function updatePrice() { try { const url = currentMode === 'futures' ? `https://fapi.binance.com/fapi/v1/ticker/price?symbol=${currentSymbol}` : `https://api.binance.com/api/v3/ticker/price?symbol=${currentSymbol}`; const res = await fetch(url); const data = await res.json(); currentPrice = parseFloat(data.price); document.getElementById('coin-price').innerText = '$' + currentPrice.toLocaleString(undefined, {minimumFractionDigits: 2}); } catch (e) {} }
-    
     async function updateLiquidity() {
         try {
             const url = currentMode === 'futures' ? `https://fapi.binance.com/fapi/v1/depth?symbol=${currentSymbol}&limit=1000` : `https://api.binance.com/api/v3/depth?symbol=${currentSymbol}&limit=1000`;
@@ -342,20 +317,6 @@
             drawWallLine(topAsk, 'sell'); drawWallLine(topBid, 'buy');
             document.getElementById('s-walls').innerHTML = `<div style="color:var(--red); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS:</div>` + asks.slice(0, 3).map(a => `<div class="row"><span>Vol: ${(a.v*a.p/1000000).toFixed(2)}M</span><span>$${a.p.toLocaleString()}</span></div>`).join('');
             document.getElementById('b-walls').innerHTML = `<div style="color:var(--green); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS:</div>` + bids.slice(0, 3).map(b => `<div class="row"><span>Vol: ${(b.v*b.p/1000000).toFixed(2)}M</span><span>$${b.p.toLocaleString()}</span></div>`).join('');
-            
-            document.getElementById('total-long-usdt').innerText = "$" + (tB / 1000000).toFixed(2) + "M";
-            document.getElementById('total-short-usdt').innerText = "$" + (tS / 1000000).toFixed(2) + "M";
-
-            if(currentMode === 'futures') {
-                document.getElementById('whale-ratio').innerText = "FUTURES";
-                document.getElementById('short-whales').innerText = Math.floor(sellP * 1.5);
-                document.getElementById('long-whales').innerText = Math.floor(buyP * 0.9);
-            } else {
-                document.getElementById('whale-ratio').innerText = "SPOT";
-                document.getElementById('short-whales').innerText = "N/A";
-                document.getElementById('long-whales').innerText = "N/A";
-            }
-
             const aiDec = document.getElementById('ai-decision'), aiTar = document.getElementById('ai-target'), aiC = document.getElementById('ai-conf');
             if(buyP > 60) { sigBuffer.buy++; sigBuffer.sell = 0; } else if(sellP > 60) { sigBuffer.sell++; sigBuffer.buy = 0; } else { sigBuffer.buy = 0; sigBuffer.sell = 0; }
             if(sigBuffer.buy >= 2) { aiDec.innerText = "🟢 STRONG BUY"; aiDec.style.color = "var(--green)"; aiTar.innerText = "$" + topAsk.p.toLocaleString(); aiC.innerText = "94%"; }
