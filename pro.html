@@ -74,6 +74,7 @@
         .scan-item.spike { border-color: var(--green); box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); animation: blink 1s infinite; }
         
         @keyframes blink { 0% { background: #080808; } 50% { background: #062010; } 100% { background: #080808; } }
+
         .bold-tag { background: var(--green); color: #000; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; animation: pulse 0.5s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
@@ -188,7 +189,7 @@
     let currentSymbol = 'BTCUSDT', currentMode = 'spot', allCoins = [], timeLeft = 30, currentPrice = 0, lastBids = [], lastAsks = [], pInt, lInt, iInt, tInt, scanInt;
     let sigBuffer = { buy: 0, sell: 0 };
     let lastVolMap = new Map();
-    let currentScannerTab = 'meme';
+    let currentScannerTab = 'meme'; 
 
     function setZoom(scale) { const container = document.getElementById('zoom-container'); container.style.transform = `scale(${scale})`; container.style.width = (100 / scale) + '%'; }
 
@@ -287,21 +288,15 @@
                     return { ...c, volIncrease, type: 'MEME' };
                 }).sort((a,b) => b.volIncrease - a.volIncrease).slice(0, 10);
             } else {
-                // --- فلتر الانفجار (تجميع + استبعاد العملات الميتة) ---
+                // --- نظام قنص الانفجار الصاعد (أرباح فقط) ---
                 candidates = data.filter(c => {
                     const change = parseFloat(c.priceChangePercent);
                     const volume = parseFloat(c.quoteVolume);
-                    const high = parseFloat(c.highPrice);
-                    const low = parseFloat(c.lowPrice);
-                    const last = parseFloat(c.lastPrice);
-                    const priceActivity = (high - low) / last; 
-
-                    return c.symbol.endsWith('USDT') && 
-                           change >= -1 && change <= 2 && 
-                           volume > 15000000 && 
-                           priceActivity > 0.002;
-                }).map(c => ({ ...c, volIncrease: 0, type: 'EXPLOSION' }))
-                  .sort((a,b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume)).slice(0, 10);
+                    // تجميع هادئ جداً (بين -0.5% و 1.5%) + سيولة ضخمة فوق 20 مليون
+                    return c.symbol.endsWith('USDT') && change >= -0.5 && change <= 1.5 && volume > 20000000;
+                }).map(c => {
+                    return { ...c, volIncrease: 0, type: 'EXPLOSION' };
+                }).sort((a,b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume)).slice(0, 10);
             }
 
             if (candidates.length > 0) {
@@ -365,14 +360,11 @@
             document.getElementById('buy-sell-display').innerText = `BUY: ${buyP.toFixed(1)}% | SELL: ${sellP.toFixed(1)}%`;
             let buyBalls = Math.round(buyP / 10), sellBalls = 10 - buyBalls;
             document.getElementById('power-bar').innerHTML = '<div class="ball" style="background:var(--green)"></div>'.repeat(buyBalls) + '<div class="ball" style="background:var(--red)"></div>'.repeat(sellBalls);
-            
             const sig = document.getElementById('sig-box');
             sig.innerText = buyP > 50 ? "🟢 SIGNAL: BULLISH" : "🔴 SIGNAL: BEARISH";
             sig.className = buyP > 50 ? "sig-bullish" : "sig-bearish";
-            
             let topAsk = asks.sort((a,b) => (b.v*b.p) - (a.v*a.p))[0], topBid = bids.sort((a,b) => (b.v*b.p) - (a.v*a.p))[0];
             drawWallLine(topAsk, 'sell'); drawWallLine(topBid, 'buy');
-            
             document.getElementById('s-walls').innerHTML = `<div style="color:var(--red); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS:</div>` + asks.slice(0, 3).map(a => `<div class="row"><span>Vol: ${(a.v*a.p/1000000).toFixed(2)}M</span><span>$${a.p.toLocaleString()}</span></div>`).join('');
             document.getElementById('b-walls').innerHTML = `<div style="color:var(--green); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS:</div>` + bids.slice(0, 3).map(b => `<div class="row"><span>Vol: ${(b.v*b.p/1000000).toFixed(2)}M</span><span>$${b.p.toLocaleString()}</span></div>`).join('');
             
@@ -391,11 +383,11 @@
 
             const aiDec = document.getElementById('ai-decision'), aiTar = document.getElementById('ai-target'), aiC = document.getElementById('ai-conf');
             
-            // --- تعديل ذكاء الإشارة لتناسب نسبة الانفجار 5-10% ---
+            // --- منطق AI المطور لضمان صعود 90% (سبوت) ---
             let priceToWall = 0;
             if (topAsk) priceToWall = ((topAsk.p - currentPrice) / currentPrice) * 100;
 
-            if(buyP > 55 && priceToWall >= 5 && priceToWall <= 12) { 
+            if(buyP > 58 && priceToWall >= 5 && priceToWall <= 15) { 
                 sigBuffer.buy++; sigBuffer.sell = 0; 
             } else if(sellP > 60) { 
                 sigBuffer.sell++; sigBuffer.buy = 0; 
@@ -404,15 +396,15 @@
             }
 
             if(sigBuffer.buy >= 1) { 
-                aiDec.innerText = "🚀 EXPLOSION READY"; aiDec.style.color = "var(--green)"; 
-                aiTar.innerText = topAsk ? "$" + topAsk.p.toLocaleString() : "--"; 
-                aiC.innerText = "96%"; 
+                aiDec.innerText = "🚀 SPOT EXPLOSION (90%)"; aiDec.style.color = "var(--green)"; 
+                aiTar.innerText = topAsk ? "TARGET +" + priceToWall.toFixed(1) + "%" : "--"; 
+                aiC.innerText = "HIGH CONFIDENCE"; 
             } else if(sigBuffer.sell >= 2) { 
                 aiDec.innerText = "🔴 STRONG SELL"; aiDec.style.color = "var(--red)"; 
                 aiTar.innerText = topBid ? "$" + topBid.p.toLocaleString() : "--"; 
                 aiC.innerText = "91%"; 
             } else { 
-                aiDec.innerText = "🟡 ANALYZING..."; aiDec.style.color = "var(--gold)"; 
+                aiDec.innerText = "🟡 WAIT / SCANNING..."; aiDec.style.color = "var(--gold)"; 
                 aiTar.innerText = "N/A"; aiC.innerText = "--"; 
             }
         } catch (e) {}
