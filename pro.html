@@ -2,304 +2,148 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>SEZAR-PHANTOM PRO ULTIMATE</title>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        :root { --gold: #fbbf24; --ghost: #a855f7; --bg: #000; --card: #080808; --red: #ef4444; --green: #22c55e; --blue: #3b82f6; /*Blue only for tabs distinguishing*/ }
-        
-        #zoom-wrapper { width: 100vw; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        #zoom-container { transition: transform 0.3s ease; transform-origin: top center; width: 100%; display: flex; flex-direction: column; align-items: center; }
-        
-        .inline-btn { background: rgba(251, 191, 36, 0.1); border: 1px solid var(--gold); color: var(--gold); padding: 2px 6px; border-radius: 4px; font-size: 10px; cursor: pointer; vertical-align: middle; margin: 0 5px; }
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: sans-serif;
+            margin: 0;
+            padding: 15px;
+        }
 
-        body { background: var(--bg); color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 10px; overflow-x: hidden; }
-        
-        .lock-box { border: 2px solid var(--gold); padding: 30px; text-align: center; background: #000; margin-top: 15vh; border-radius: 15px; width: 300px; }
-        .secure-note { color: #888; font-size: 11px; margin-bottom: 15px; line-height: 1.6; }
-        input.pass { background: #111; border: 1px solid #333; color: var(--gold); padding: 12px; text-align: center; margin-bottom: 20px; width: 95%; outline: none; border-radius: 5px; font-size: 18px; }
-        button.login-btn { background: var(--gold); color: #000; border: none; padding: 15px; font-weight: bold; cursor: pointer; border-radius: 8px; width: 100%; font-size: 18px; margin-bottom: 20px; }
+        .header-title {
+            text-align: center;
+            color: #a855f7; /* لون الموف لـ WHALE SCANNER كما بالصورة */
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 25px;
+            letter-spacing: 2px;
+        }
 
-        #search-screen, #scanner-screen, #bottom-scanner-screen { display: none; width: 100%; max-width: 450px; text-align: center; margin-top: 20px; }
-        .sezar-brand { margin-bottom: 30px; }
-        .sezar-brand .sub-text { font-size: 28px; font-weight: bold; color: var(--gold); text-shadow: 0 0 15px rgba(251, 191, 36, 0.5); }
-        .search-input { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 18px; width: 95%; border-radius: 15px; font-size: 16px; outline: none; text-align: center; margin-bottom: 30px; }
-        .coin-item { background: #080808; border: 1px solid #222; padding: 15px; border-radius: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .coin-type { font-size: 9px; padding: 2px 5px; border-radius: 3px; margin-right: 5px; }
+        /* حاوية الأزرار العلوية */
+        .top-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
 
-        #radar-ui { display: none; width: 100%; max-width: 450px; padding-bottom: 80px; position: relative; }
-        .header { border: 1px solid var(--gold); padding: 5px; text-align: center; margin-bottom: 15px; border-radius: 5px; position: relative; }
-        .back-btn { position: absolute; left: 8px; top: 8px; background: var(--gold); color: #000; border: none; padding: 4px 10px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer; }
+        .nav-btn {
+            flex: 1;
+            background: #000;
+            border: 1px solid #fbbf24;
+            color: #fbbf24;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 14px;
+        }
 
-        .price-box { border: 1px dashed #555; padding: 15px; text-align: center; font-size: 32px; font-weight: 900; margin-bottom: 5px; background: #0a0a0a; color: #00d2ff; }
-        
-        #chart-container { width: 100%; height: 350px; border: 1px solid #222; border-radius: 10px; background: #000; margin: 15px 0; overflow: hidden; position: relative; }
-        #chart-frame { width: 100%; height: 100%; border: none; }
+        .nav-btn.active {
+            background: #fbbf24;
+            color: #000;
+        }
 
-        .chart-wall-line { position: absolute; left: 0; width: 100%; height: 2px; z-index: 10; pointer-events: none; transition: top 0.3s ease; }
-        
-        #sell-wall-line .wall-label { position: absolute; right: 80px; top: -18px; font-size: 9px; font-weight: bold; padding: 2px 5px; border-radius: 3px; background: rgba(0,0,0,0.85); border: 1px solid currentColor; white-space: nowrap; }
-        #buy-wall-line .wall-label { position: absolute; right: 80px; top: 2px; font-size: 9px; font-weight: bold; padding: 2px 5px; border-radius: 3px; background: rgba(0,0,0,0.85); border: 1px solid currentColor; white-space: nowrap; }
+        .section-label {
+            color: #a855f7;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: block;
+            font-size: 16px;
+        }
 
-        .timer-text { text-align:center; font-size:10px; color: var(--gold); margin-bottom: 12px; font-weight: bold; }
-        #buy-sell-per { text-align:center; font-weight:bold; margin-bottom:10px; font-size: 14px; }
-        #power-bar { text-align:center; margin-bottom:20px; display: flex; justify-content: center; gap: 4px; }
-        .ball { width: 12px; height: 12px; border-radius: 50%; }
+        /* تصميم الكرت الذهبي المطابق للصورة 100% */
+        .gold-card {
+            background-color: #080808;
+            border: 1px solid #1a1a1a;
+            border-radius: 15px;
+            padding: 18px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-        .row { display: flex; justify-content: space-between; padding: 12px 5px; border-bottom: 1px solid #111; font-size: 13px; font-weight: bold; }
-        .perc-tag { color: var(--gold); font-size: 10px; background: rgba(251, 191, 36, 0.1); padding: 2px 8px; border-radius: 10px; }
-        .ice-card { background: var(--card); border: 1px solid var(--ghost); padding: 15px; border-radius: 12px; margin-top: 20px; width: 100%; box-sizing: border-box; }
-        
-        .ai-signal-box { background: linear-gradient(45deg, #080808, #111); border: 1px double var(--gold); border-radius: 10px; padding: 15px; margin: 15px 0; text-align: center; box-shadow: 0 0 15px rgba(251, 191, 36, 0.1); }
-        #ai-decision { font-size: 18px; font-weight: 900; margin: 5px 0; }
-        .ai-meta { display: flex; justify-content: space-around; font-size: 10px; color: #888; margin-top: 5px; }
+        /* الزر الذهبي على اليمين */
+        .btn-gold {
+            background-color: #fbbf24;
+            color: #000;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
 
-        .whale-live-box { background: #0a0a0a; border: 1px solid var(--gold); border-radius: 10px; margin: 15px 0; padding: 10px; }
-        .whale-header { font-size: 10px; color: var(--gold); font-weight: bold; text-align: center; border-bottom: 1px solid #222; padding-bottom: 5px; margin-bottom: 10px; }
-        .whale-grid { display: flex; justify-content: space-between; text-align: center; }
-        .whale-col { flex: 1; }
-        .whale-label { font-size: 9px; color: #666; margin-bottom: 4px; }
-        .whale-val { font-size: 12px; font-weight: bold; }
+        /* قسم البيانات على اليسار */
+        .data-section {
+            text-align: left; /* كما في الصورة الذهبية البيانات لليسار */
+        }
 
-        #sig-box { text-align: center; font-weight: bold; padding: 15px; margin-top: 30px; border-radius: 5px; font-size: 16px; }
-        .sig-bullish { background: #064e3b; color: #22c55e; border: 1px solid #22c55e; }
-        .sig-bearish { background: #450a0a; color: #ef4444; border: 1px solid #ef4444; }
+        .coin-name {
+            color: #fbbf24;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 4px;
+            display: block;
+        }
 
-        .nav-tabs { display: flex; gap: 5px; width: 95%; margin-bottom: 20px; }
-        .tab-btn { flex: 1; padding: 10px 5px; border-radius: 10px; border: 1px solid var(--gold); background: #000; color: var(--gold); font-weight: bold; cursor: pointer; font-size: 11px; }
-        .tab-btn.active { background: var(--gold); color: #000; }
-        
-        /* مطابقة 100% للتصميم الأول */
-        .scan-item, .bottom-scan-item { background: #080808; border: 1px solid #222; padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
-        
-        .scan-item { border-left: 5px solid var(--ghost); }
-        .scan-item.spike { border-color: var(--green); box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); animation: blink 1s infinite; }
-        
-        /* تعديل تصميم قسم القيعان ليطابق الميم 100% */
-        .bottom-scan-item { border-left: 5px solid var(--blue); } /* الحفاظ على لون التبويب للفصل البرمجي فقط */
-        .card-text { text-align: right; }
-        .acc-text { color: var(--blue); font-size: 12px; font-weight: bold; }
-        .tag-row { display: flex; align-items: center; margin-top: 2px; }
-        
-        @keyframes blink { 0% { background: #080808; } 50% { background: #062010; } 100% { background: #080808; } }
-        .contact-dev { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); padding: 15px 0; display: flex; justify-content: space-around; border-top: 1px solid #222; z-index: 100; }
-        .contact-dev a { color: var(--gold); text-decoration: none; font-size: 11px; border: 1px solid var(--gold); padding: 8px 16px; border-radius: 5px; font-weight: bold; }
+        .pre-pump {
+            color: #22c55e;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+
+        .volume {
+            color: #666;
+            font-size: 11px;
+        }
     </style>
 </head>
-<body onload="checkAuth()">
+<body>
 
-<div id="zoom-wrapper">
-    <div id="zoom-container">
-        <div id="auth-screen" class="lock-box">
-            <div style="color:var(--gold); font-weight:bold; margin-bottom:20px;">🔒 تفعيل SEZAR-PHANTOM PRO</div>
-            <div class="secure-note">هذا الرمز يعمل على جهاز واحد فقط<br>ولا يعمل على جهاز غيره نهائياً</div>
-            <input type="password" id="pass-key" class="pass" placeholder="•••••">
-            <button onclick="activate()" class="login-btn">تسجيل دخول</button>
-            <div id="error-msg" style="color: var(--red); font-size: 12px; margin-top: 10px; display: none; font-weight: bold;"></div>
-        </div>
+    <div class="header-title">WHALE SCANNER</div>
 
-        <div id="search-screen">
-            <div class="sezar-brand"><span class="sub-text">「 SEZAR-PHANTOM 」</span></div>
-            <div class="nav-tabs">
-                <button class="tab-btn active" id="btn-search" onclick="switchTab('search')">🔍 بحث</button>
-                <button class="tab-btn" id="btn-scanner" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
-                <button class="tab-btn" id="btn-bottom" onclick="switchTab('bottom')">💎 قناص القيعان</button>
-            </div>
-            <input type="text" class="search-input" id="search-input" placeholder="🔍 ابحث (Spot & Futures)..." oninput="searchCoins()">
-            <div id="results-list"></div>
-        </div>
-
-        <div id="scanner-screen">
-            <div class="sezar-brand"><span class="sub-text" style="color:var(--ghost);">WHALE SCANNER</span></div>
-            <div class="nav-tabs">
-                <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
-                <button class="tab-btn active" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
-                <button class="tab-btn" onclick="switchTab('bottom')">💎 قناص القيعان</button>
-            </div>
-            <div style="color:var(--ghost); font-weight:bold; margin-bottom:15px; text-align:right; padding:0 10px;">🚀 مراقب السيولة والارتداد:</div>
-            <div id="scanner-list"></div>
-        </div>
-
-        <div id="bottom-scanner-screen">
-            <div class="sezar-brand"><span class="sub-text" style="color:var(--blue);">BOTTOM SCANNER</span></div>
-            <div class="nav-tabs">
-                <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
-                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
-                <button class="tab-btn active" onclick="switchTab('bottom')">💎 قناص القيعان</button>
-            </div>
-            <div style="color:var(--blue); font-weight:bold; margin-bottom:15px; text-align:right; padding:0 10px;">🐳 تجميع الحيتان في القاع:</div>
-            <div id="bottom-scanner-list"></div>
-        </div>
-
-        <div id="radar-ui">
-            <div class="header">
-                <button class="back-btn" onclick="goBack()">🔙 رجوع</button>
-                <h2 id="radar-title">「 SEZAR-PHANTOM 」</h2>
-                <p id="current-coin-name" style="font-size:11px; margin:0;">[ BTCUSDT ]</p>
-            </div>
-            <div class="price-box" id="coin-price">Loading...</div>
-            <div id="chart-container">
-                <iframe id="chart-frame" src=""></iframe>
-                <div id="sell-wall-line" class="chart-wall-line" style="background: var(--red); display: none;"><span class="wall-label" style="color: var(--red);">SELL: <span id="sw-vol"></span></span></div>
-                <div id="buy-wall-line" class="chart-wall-line" style="background: var(--green); display: none;"><span class="wall-label" style="color: var(--green);">BUY: <span id="bw-vol"></span></span></div>
-            </div>
-            <div class="timer-text">تحديث السيولة خلال: <span id="timer">30</span> ثانية</div>
-            <div id="buy-sell-per">
-                <button class="inline-btn" onclick="setZoom(0.6)">-</button>
-                <span id="buy-sell-display">BUY: --% | SELL: --%</span>
-                <button class="inline-btn" onclick="setZoom(1.0)">🏠</button>
-            </div>
-            <div id="power-bar"></div>
-            <div id="s-walls"></div>
-            <div class="ai-signal-box">
-                <div id="ai-decision">ANALYZING...</div>
-                <div class="ai-meta"><span>TARGET: <span id="ai-target">--</span></span><span>ACCURACY: <span id="ai-conf">--</span></span></div>
-            </div>
-            <div id="b-walls"></div>
-            <div id="sig-box">ANALYZING...</div>
-        </div>
+    <div class="top-nav">
+        <div class="nav-btn">بحث 🔍</div>
+        <div class="nav-btn active">القناص (ميم) 🛰️</div>
+        <div class="nav-btn">قناص القيعان 💎</div>
     </div>
-</div>
 
-<div class="contact-dev"><a href="https://t.me/se44se" target="_blank">✈️ تليجرام</a><a href="mailto:sezarphantom@gmail.com">📧 الإيميل</a></div>
+    <span class="section-label">🚀 مراقب السيولة والارتداد:</span>
 
-<script>
-    const firebaseConfig = { apiKey: "AIzaSyAzEZksgZMPbY79K_TM3mHKeW1shQ6V-lY", authDomain: "sezar-phantom-auth.firebaseapp.com", projectId: "sezar-phantom-auth", storageBucket: "sezar-phantom-auth.firebasestorage.app", messagingSenderId: "112991314655", appId: "1:112991314655:web:cbca0b5c0c6b6e4f51ff6a" };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    <div class="gold-card">
+        <div class="data-section">
+            <span class="coin-name">ETHUSDT</span>
+            <div class="pre-pump">PRE-PUMP: 0.149%</div>
+            <div class="volume">VOLUME: 439.51M</div>
+        </div>
+        <button class="btn-gold">قنص 🎯</button>
+    </div>
 
-    let currentSymbol = 'BTCUSDT', currentMode = 'spot', allCoins = [], timeLeft = 30, currentPrice = 0, lastVolMap = new Map();
-    let pInt, lInt, tInt, scanInt;
+    <div class="gold-card">
+        <div class="data-section">
+            <span class="coin-name">DOTUSDT</span>
+            <div class="pre-pump">PRE-PUMP: 2.433%</div>
+            <div class="volume">VOLUME: 6.47M</div>
+        </div>
+        <button class="btn-gold">قنص 🎯</button>
+    </div>
 
-    function setZoom(scale) { const container = document.getElementById('zoom-container'); container.style.transform = `scale(${scale})`; container.style.width = (100 / scale) + '%'; }
+    <div class="gold-card">
+        <div class="data-section">
+            <span class="coin-name">USDCUSDT</span>
+            <div class="pre-pump">PRE-PUMP: 0.001%</div>
+            <div class="volume">VOLUME: 2092.58M</div>
+        </div>
+        <button class="btn-gold">قنص 🎯</button>
+    </div>
 
-    function switchTab(tab) {
-        document.getElementById('search-screen').style.display = tab === 'search' ? 'block' : 'none';
-        document.getElementById('scanner-screen').style.display = tab === 'scanner' ? 'block' : 'none';
-        document.getElementById('bottom-scanner-screen').style.display = tab === 'bottom' ? 'block' : 'none';
-        document.getElementById('radar-ui').style.display = tab === 'radar' ? 'block' : 'none';
-        
-        if(tab === 'scanner' || tab === 'bottom') { 
-            updateScanner(); updateBottomScanner(); 
-            if(!scanInt) scanInt = setInterval(() => { updateScanner(); updateBottomScanner(); }, 5000); 
-        } else { clearInterval(scanInt); scanInt = null; }
-    }
-
-    async function checkAuth() {
-        const savedKey = localStorage.getItem('sz_ultimate_v1_key');
-        if (savedKey) showSearch(); else document.getElementById('auth-screen').style.display = 'block';
-    }
-
-    async function activate() { 
-        const k = document.getElementById('pass-key').value;
-        if(k) { localStorage.setItem('sz_ultimate_v1_key', k); showSearch(); }
-    }
-    
-    async function showSearch() {
-        document.getElementById('auth-screen').style.display = 'none';
-        switchTab('search');
-        const res = await fetch('https://api.binance.com/api/v3/exchangeInfo');
-        const data = await res.json();
-        allCoins = data.symbols.filter(s => s.status === 'TRADING' && s.symbol.endsWith('USDT')).map(s => ({s: s.symbol, m: 'spot'}));
-    }
-
-    function searchCoins() {
-        const query = document.getElementById('search-input').value.toUpperCase();
-        const list = document.getElementById('results-list');
-        list.innerHTML = '';
-        let uniqueCoins = {};
-        allCoins.filter(c => c.s.includes(query)).forEach(c => { if (!uniqueCoins[c.s] || c.m === 'futures') uniqueCoins[c.s] = c; });
-        Object.values(uniqueCoins).slice(0, 15).forEach(c => {
-            const item = document.createElement('div');
-            item.className = 'coin-item';
-            item.innerHTML = `<div><span style="font-weight:bold;">${c.s}</span></div><div style="color:var(--gold); font-size:11px;">تحليل 🔭</div>`;
-            item.onclick = () => startRadar(c.s, c.m);
-            list.appendChild(item);
-        });
-    }
-
-    // قناص القيعان - مطابقة التصميم الأصلي للميم 100%
-    async function updateBottomScanner() {
-        try {
-            const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
-            const data = await res.json();
-            const list = document.getElementById('bottom-scanner-list');
-            let bottomCoins = data.filter(c => {
-                const low = parseFloat(c.lowPrice), current = parseFloat(c.lastPrice), volume = parseFloat(c.quoteVolume);
-                return c.symbol.endsWith('USDT') && ((current - low) / low) * 100 < 1.0 && volume > 2000000;
-            }).slice(0, 8);
-
-            let html = '';
-            bottomCoins.forEach(c => {
-                html += `
-                    <div class="bottom-scan-item">
-                        <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--blue); color:#fff; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold;">متابعة 🎯</button>
-                        <div class="card-text">
-                            <div style="color:var(--gold); font-weight:bold; font-size:16px;">
-                                ${c.symbol}
-                            </div>
-                            <div class="tag-row">
-                                <span class="accumulation-tag">💎 تجميع حيتان</span>
-                                <span style="color:var(--green); font-size:12px; font-weight:bold;">الهدف: +15% 📈</span>
-                            </div>
-                            <div style="color:#666; font-size:10px;">VOLUME: ${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div>
-                        </div>
-                    </div>`;
-            });
-            list.innerHTML = html;
-        } catch(e) {}
-    }
-
-    // قناص الميم - التصميم الأصلي
-    async function updateScanner() {
-        try {
-            const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
-            const data = await res.json();
-            const list = document.getElementById('scanner-list');
-            let candidates = data.filter(c => {
-                const change = parseFloat(c.priceChangePercent), volume = parseFloat(c.quoteVolume);
-                return c.symbol.endsWith('USDT') && change >= 0 && change <= 15 && volume > 5000000;
-            }).map(c => {
-                const currentVol = parseFloat(c.quoteVolume), prevVol = lastVolMap.get(c.symbol) || currentVol;
-                const volIncrease = prevVol > 0 ? ((currentVol - prevVol) / prevVol) * 100 : 0;
-                lastVolMap.set(c.symbol, currentVol);
-                return { ...c, volIncrease };
-            }).sort((a,b) => b.volIncrease - a.volIncrease).slice(0, 10);
-
-            let html = '';
-            candidates.forEach(c => {
-                const isSpike = c.volIncrease > 0.8;
-                html += `
-                    <div class="scan-item ${isSpike ? 'spike' : ''}">
-                        <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--gold); color:#000; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold;">قنص 🎯</button>
-                        <div style="text-align:right">
-                            <div style="color:var(--gold); font-weight:bold; font-size:16px;">
-                                ${isSpike ? '🚀 ' : ''}${c.symbol}
-                            </div>
-                            <div style="color:var(--green); font-size:12px; font-weight:bold;">PRE-PUMP: ${c.priceChangePercent}%</div>
-                            <div style="color:#666; font-size:10px;">VOLUME: ${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div>
-                        </div>
-                    </div>`;
-            });
-            list.innerHTML = html;
-        } catch (e) {}
-    }
-
-    function startRadar(symbol, mode) {
-        currentSymbol = symbol; currentMode = mode; switchTab('radar');
-        document.getElementById('current-coin-name').innerText = `[ ${symbol} ]`;
-        document.getElementById('chart-frame').src = `https://s.tradingview.com/widgetembed/?symbol=BINANCE:${symbol}&interval=1&theme=dark`;
-        updatePrice(); pInt = setInterval(updatePrice, 2000);
-    }
-
-    function goBack() { switchTab('search'); clearInterval(pInt); }
-
-    async function updatePrice() {
-        const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${currentSymbol}`);
-        const data = await res.json();
-        document.getElementById('coin-price').innerText = '$' + parseFloat(data.price).toLocaleString();
-    }
-</script>
 </body>
 </html>
