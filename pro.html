@@ -288,17 +288,20 @@
                 }).sort((a,b) => b.volIncrease - a.volIncrease).slice(0, 10);
             } else {
                 candidates = data.filter(c => {
-                    const change = parseFloat(c.priceChangePercent);
-                    const volume = parseFloat(c.quoteVolume);
-                    const high = parseFloat(c.highPrice);
-                    const low = parseFloat(c.lowPrice);
                     const last = parseFloat(c.lastPrice);
-                    const priceActivity = (high - low) / last; 
+                    const low = parseFloat(c.lowPrice);
+                    const high = parseFloat(c.highPrice);
+                    const vol = parseFloat(c.quoteVolume);
+                    const chg = parseFloat(c.priceChangePercent);
 
-                    return c.symbol.endsWith('USDT') && 
-                           change >= -1 && change <= 2 && 
-                           volume > 15000000 && 
-                           priceActivity > 0.002;
+                    if (last === 0 || vol < 1000000) return false;
+                    const isStable = c.symbol.includes('USDC') || c.symbol.includes('DAI') || c.symbol.includes('EUR') || c.symbol.includes('FDUSD');
+                    if (isStable) return false;
+
+                    const nearBottom = (last - low) / (high - low) < 0.15;
+                    const lowActivity = Math.abs(chg) < 3;
+
+                    return c.symbol.endsWith('USDT') && nearBottom && lowActivity;
                 }).map(c => ({ ...c, volIncrease: 0, type: 'EXPLOSION' }))
                   .sort((a,b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume)).slice(0, 10);
             }
@@ -320,8 +323,8 @@
                                     ${(isSpike || isExplosion) ? '🚀 ' : ''}${c.symbol}
                                     ${isBoldEntry ? `<span class="bold-tag" style="background:${borderColor}">${tagLabel}</span>` : ''}
                                 </div>
-                                <div style="color:var(--green); font-size:12px; font-weight:bold;">PRE-PUMP: ${change}%</div>
-                                <div style="color:#666; font-size:10px;">VOLUME: ${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div>
+                                <div style="color:var(--green); font-size:12px; font-weight:bold;">${isExplosion ? 'تجميع قاع (تحفّز)' : 'PRE-PUMP: ' + change + '%'}</div>
+                                <div style="color:#666; font-size:10px;">سيولة القاع: ${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div>
                             </div>
                             <button onclick="startRadar('${c.symbol}', 'spot')" style="background:${isExplosion ? 'var(--ghost)' : 'var(--gold)'}; color:#000; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold;">قنص 🎯</button>
                         </div>
@@ -393,7 +396,7 @@
             let priceToWall = 0;
             if (topAsk) priceToWall = ((topAsk.p - currentPrice) / currentPrice) * 100;
 
-            if(buyP > 55 && priceToWall >= 5 && priceToWall <= 12) { 
+            if(buyP > 55 && priceToWall >= 5 && priceToWall <= 15) { 
                 sigBuffer.buy++; sigBuffer.sell = 0; 
             } else if(sellP > 60) { 
                 sigBuffer.sell++; sigBuffer.buy = 0; 
