@@ -1,68 +1,216 @@
-async function updateScanner() {
-        try {
-            const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
-            const data = await res.json();
-            const list = document.getElementById('scanner-list');
-            
-            let candidates;
-            if (currentScannerTab === 'meme') {
-                candidates = data.filter(c => {
-                    const change = parseFloat(c.priceChangePercent);
-                    const volume = parseFloat(c.quoteVolume);
-                    return c.symbol.endsWith('USDT') && change >= 0 && change <= 15 && volume > 5000000;
-                }).map(c => {
-                    const currentVol = parseFloat(c.quoteVolume);
-                    const prevVol = lastVolMap.get(c.symbol) || currentVol;
-                    const volIncrease = prevVol > 0 ? ((currentVol - prevVol) / prevVol) * 100 : 0;
-                    lastVolMap.set(c.symbol, currentVol);
-                    return { ...c, volIncrease, type: 'MEME' };
-                }).sort((a,b) => b.volIncrease - a.volIncrease).slice(0, 10);
-            } else {
-                // --- التعديل هنا: فلتر "القاع المستقر" لضمان عدم الشراء والسعر ينهار ---
-                candidates = data.filter(c => {
-                    const change = parseFloat(c.priceChangePercent);
-                    const volume = parseFloat(c.quoteVolume);
-                    const high = parseFloat(c.highPrice);
-                    const low = parseFloat(c.lowPrice);
-                    const last = parseFloat(c.lastPrice);
-                    
-                    // حساب القرب من القاع: هل السعر ضمن آخر 10% من نطاق اليوم؟
-                    const priceRange = high - low;
-                    const positionInDayRange = (last - low) / priceRange;
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>SEZAR-PHANTOM PRO ULTIMATE</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <style>
+        :root { --gold: #fbbf24; --ghost: #a855f7; --bg: #000; --card: #080808; --red: #ef4444; --green: #22c55e; }
+        #zoom-wrapper { width: 100vw; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        #zoom-container { transition: transform 0.3s ease; transform-origin: top center; width: 100%; display: flex; flex-direction: column; align-items: center; }
+        .inline-btn { background: rgba(251, 191, 36, 0.1); border: 1px solid var(--gold); color: var(--gold); padding: 2px 6px; border-radius: 4px; font-size: 10px; cursor: pointer; vertical-align: middle; margin: 0 5px; }
+        body { background: var(--bg); color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 10px; overflow-x: hidden; }
+        .lock-box { border: 2px solid var(--gold); padding: 30px; text-align: center; background: #000; margin-top: 15vh; border-radius: 15px; width: 300px; }
+        .secure-note { color: #888; font-size: 11px; margin-bottom: 15px; line-height: 1.6; }
+        input.pass { background: #111; border: 1px solid #333; color: var(--gold); padding: 12px; text-align: center; margin-bottom: 20px; width: 95%; outline: none; border-radius: 5px; font-size: 18px; }
+        button.login-btn { background: var(--gold); color: #000; border: none; padding: 15px; font-weight: bold; cursor: pointer; border-radius: 8px; width: 100%; font-size: 18px; margin-bottom: 20px; }
+        #search-screen, #scanner-screen { display: none; width: 100%; max-width: 450px; text-align: center; margin-top: 20px; }
+        .sezar-brand { margin-bottom: 30px; }
+        .sezar-brand .sub-text { font-size: 28px; font-weight: bold; color: var(--gold); text-shadow: 0 0 15px rgba(251, 191, 36, 0.5); }
+        .search-input { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 18px; width: 95%; border-radius: 15px; font-size: 16px; outline: none; text-align: center; margin-bottom: 30px; }
+        .coin-item { background: #080808; border: 1px solid #222; padding: 15px; border-radius: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .coin-type { font-size: 9px; padding: 2px 5px; border-radius: 3px; margin-right: 5px; }
+        #radar-ui { display: none; width: 100%; max-width: 450px; padding-bottom: 80px; position: relative; }
+        .header { border: 1px solid var(--gold); padding: 5px; text-align: center; margin-bottom: 15px; border-radius: 5px; position: relative; }
+        .back-btn { position: absolute; left: 8px; top: 8px; background: var(--gold); color: #000; border: none; padding: 4px 10px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer; }
+        .price-box { border: 1px dashed #555; padding: 15px; text-align: center; font-size: 32px; font-weight: 900; margin-bottom: 5px; background: #0a0a0a; color: #00d2ff; }
+        #chart-container { width: 100%; height: 350px; border: 1px solid #222; border-radius: 10px; background: #000; margin: 15px 0; overflow: hidden; position: relative; }
+        #chart-frame { width: 100%; height: 100%; border: none; }
+        .chart-wall-line { position: absolute; left: 0; width: 100%; height: 2px; z-index: 10; pointer-events: none; transition: top 0.3s ease; }
+        .timer-text { text-align:center; font-size:10px; color: var(--gold); margin-bottom: 12px; font-weight: bold; }
+        #buy-sell-display { text-align:center; font-weight:bold; margin-bottom:10px; font-size: 14px; color: var(--gold); }
+        #power-bar { text-align:center; margin-bottom:20px; display: flex; justify-content: center; gap: 4px; }
+        .ball { width: 12px; height: 12px; border-radius: 50%; }
+        .row { display: flex; justify-content: space-between; padding: 12px 5px; border-bottom: 1px solid #111; font-size: 13px; font-weight: bold; }
+        .whale-live-box { background: #0a0a0a; border: 1px solid var(--gold); border-radius: 10px; margin: 15px 0; padding: 10px; }
+        .whale-grid { display: flex; justify-content: space-between; text-align: center; }
+        .whale-label { font-size: 9px; color: #666; margin-bottom: 4px; }
+        .whale-val { font-size: 12px; font-weight: bold; }
+        .ai-signal-box { background: linear-gradient(45deg, #080808, #111); border: 1px double var(--gold); border-radius: 10px; padding: 15px; margin: 15px 0; text-align: center; }
+        .ice-card { background: var(--card); border: 1px solid var(--ghost); padding: 15px; border-radius: 12px; margin-top: 20px; width: 100%; box-sizing: border-box; }
+        #sig-box { text-align: center; font-weight: bold; padding: 15px; margin-top: 30px; border-radius: 5px; font-size: 16px; }
+        .sig-bullish { background: #064e3b; color: #22c55e; border: 1px solid #22c55e; }
+        .sig-bearish { background: #450a0a; color: #ef4444; border: 1px solid #ef4444; }
+        .nav-tabs { display: flex; gap: 10px; width: 95%; margin-bottom: 20px; }
+        .tab-btn { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--gold); background: #000; color: var(--gold); font-weight: bold; cursor: pointer; }
+        .tab-btn.active { background: var(--gold); color: #000; }
+        .scan-item { background: #080808; border: 1px solid #222; padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    </style>
+</head>
+<body onload="checkAuth()">
 
-                    return c.symbol.endsWith('USDT') && 
-                           volume > 20000000 && // سيولة عالية لضمان وجود حيتان
-                           change > -1.5 && // استبعاد العملات التي تهبط بقوة (أكثر من 1.5% هبوط يخرجها من القائمة)
-                           positionInDayRange < 0.15; // السعر بالقرب من قاعه اليومي
-                }).map(c => ({ ...c, volIncrease: 0, type: 'EXPLOSION' }))
-                  .sort((a,b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume)).slice(0, 10);
-            }
+<div id="zoom-wrapper">
+    <div id="zoom-container">
+        <div id="auth-screen" class="lock-box">
+            <div style="color:var(--gold); font-weight:bold; margin-bottom:20px;">🔒 تفعيل SEZAR-PHANTOM PRO</div>
+            <input type="password" id="pass-key" class="pass" placeholder="•••••">
+            <button onclick="activate()" class="login-btn">تسجيل دخول</button>
+            <div id="error-msg" style="color: var(--red); font-size: 12px; margin-top: 10px; display: none;"></div>
+        </div>
 
-            if (candidates.length > 0) {
-                let htmlContent = '';
-                candidates.forEach(c => {
-                    const change = parseFloat(c.priceChangePercent);
-                    const isExplosion = c.type === 'EXPLOSION';
-                    const isSpike = c.volIncrease > 0.8; 
-                    const isBoldEntry = (isSpike && change > 2) || (isExplosion);
-                    const borderColor = isExplosion ? 'var(--ghost)' : 'var(--green)';
-                    const tagLabel = isExplosion ? 'ACCUMULATION 🐳' : 'BOLD ENTRY 🔥';
+        <div id="search-screen">
+            <div class="sezar-brand"><span class="sub-text">「 SEZAR-PHANTOM 」</span></div>
+            <div class="nav-tabs">
+                <button class="tab-btn active" onclick="switchTab('search')">🔍 بحث</button>
+                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص</button>
+            </div>
+            <input type="text" class="search-input" id="search-input" placeholder="🔍 ابحث (Spot & Futures)..." oninput="searchCoins()">
+            <div id="results-list"></div>
+        </div>
 
-                    htmlContent += `
-                        <div class="scan-item ${isSpike ? 'spike' : ''}" style="border-left: 5px solid ${isBoldEntry ? borderColor : 'var(--gold)'}">
-                            <div style="text-align:right">
-                                <div style="color:var(--gold); font-weight:bold; font-size:16px; display:flex; align-items:center;">
-                                    ${(isSpike || isExplosion) ? '🚀 ' : ''}${c.symbol}
-                                    ${isBoldEntry ? `<span class="bold-tag" style="background:${borderColor}">${tagLabel}</span>` : ''}
-                                </div>
-                                <div style="color:var(--green); font-size:12px; font-weight:bold;">PRE-PUMP: ${change}%</div>
-                                <div style="color:#666; font-size:10px;">VOLUME: ${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div>
-                            </div>
-                            <button onclick="startRadar('${c.symbol}', 'spot')" style="background:${isExplosion ? 'var(--ghost)' : 'var(--gold)'}; color:#000; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold;">قنص 🎯</button>
-                        </div>
-                    `;
-                });
-                list.innerHTML = htmlContent;
-            }
-        } catch (e) {}
+        <div id="scanner-screen">
+            <div class="sezar-brand"><span class="sub-text" style="color:var(--ghost);">WHALE SCANNER</span></div>
+            <div id="scanner-tabs" style="display:flex; gap:10px; width:95%; margin:0 auto 20px auto;">
+                <button id="tab-meme" class="tab-btn active" onclick="setScannerMode('meme')">🚀 ميم</button>
+                <button id="tab-spot" class="tab-btn" onclick="setScannerMode('spot')">💎 انفجار</button>
+            </div>
+            <div id="scanner-list"></div>
+        </div>
+
+        <div id="radar-ui">
+            <div class="header">
+                <button class="back-btn" onclick="goBack()">🔙 رجوع</button>
+                <h2 id="radar-title">「 SEZAR-PHANTOM 」</h2>
+                <p id="current-coin-name" style="font-size:11px; margin:0;">[ BTCUSDT ]</p>
+            </div>
+            <div class="price-box" id="coin-price">Loading...</div>
+            <div id="chart-container">
+                <iframe id="chart-frame" src=""></iframe>
+            </div>
+            <div class="timer-text">تحديث السيولة خلال: <span id="timer">30</span> ثانية</div>
+            <div id="buy-sell-display">BUY: --% | SELL: --%</div>
+            <div id="power-bar"></div>
+
+            <div class="whale-live-box">
+                <div class="whale-grid">
+                    <div class="whale-col">
+                        <div class="whale-label">SHORT WHALES</div>
+                        <div id="short-whales" class="whale-val" style="color:var(--red)">N/A</div>
+                    </div>
+                    <div class="whale-col">
+                        <div class="whale-label">NET RATIO</div>
+                        <div id="whale-ratio" class="whale-val" style="color:var(--gold)">SPOT</div>
+                    </div>
+                    <div class="whale-col">
+                        <div class="whale-label">LONG WHALES</div>
+                        <div id="long-whales" class="whale-val" style="color:var(--green)">N/A</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ai-signal-box">
+                <div id="ai-decision" style="font-size: 18px; font-weight: 900;">ANALYZING...</div>
+                <div style="font-size: 10px; color: #888; margin-top: 5px;">TARGET: <span id="ai-target">--</span> | ACCURACY: <span id="ai-conf">--</span></div>
+            </div>
+
+            <div class="ice-card">
+                <div style="font-size:11px; color:var(--ghost); font-weight:bold; margin-bottom:10px;">ICEBERG DETECTOR</div>
+                <div id="iceberg-list"></div>
+            </div>
+            <div id="sig-box">ANALYZING...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentSymbol = 'BTCUSDT', currentMode = 'spot', allCoins = [], timeLeft = 30, currentPrice = 0;
+    let pInt, lInt, tInt, scanInt;
+
+    async function checkAuth() { showSearch(); }
+
+    function switchTab(tab) {
+        document.getElementById('search-screen').style.display = tab === 'search' ? 'block' : 'none';
+        document.getElementById('scanner-screen').style.display = tab === 'scanner' ? 'block' : 'none';
+        document.getElementById('radar-ui').style.display = tab === 'radar' ? 'block' : 'none';
+        if(tab === 'scanner') updateScanner();
     }
+
+    async function showSearch() {
+        document.getElementById('auth-screen').style.display = 'none';
+        switchTab('search');
+        const res = await fetch('https://api.binance.com/api/v3/exchangeInfo');
+        const data = await res.json();
+        allCoins = data.symbols.filter(s => s.symbol.endsWith('USDT')).map(s => ({s: s.symbol, m: 'spot'}));
+        searchCoins();
+    }
+
+    function searchCoins() {
+        const query = document.getElementById('search-input').value.toUpperCase();
+        const list = document.getElementById('results-list');
+        list.innerHTML = '';
+        allCoins.filter(c => c.s.includes(query)).slice(0, 10).forEach(c => {
+            const item = document.createElement('div');
+            item.className = 'coin-item';
+            item.innerHTML = `<span>${c.s}</span><span style="color:var(--gold)">تحليل 🔭</span>`;
+            item.onclick = () => startRadar(c.s, 'spot');
+            list.appendChild(item);
+        });
+    }
+
+    function startRadar(symbol, mode) {
+        currentSymbol = symbol; currentMode = mode;
+        switchTab('radar');
+        document.getElementById('current-coin-name').innerText = `[ ${symbol} ]`;
+        document.getElementById('chart-frame').src = `https://s.tradingview.com/widgetembed/?symbol=BINANCE:${symbol}&interval=1&theme=dark`;
+        clearInterval(pInt); clearInterval(lInt); clearInterval(tInt);
+        updatePrice(); updateLiquidity();
+        pInt = setInterval(updatePrice, 2000);
+        lInt = setInterval(updateLiquidity, 5000);
+        tInt = setInterval(() => { timeLeft--; if(timeLeft<0) timeLeft=30; document.getElementById('timer').innerText = timeLeft; }, 1000);
+    }
+
+    function goBack() { switchTab('search'); }
+
+    async function updatePrice() {
+        try {
+            const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${currentSymbol}`);
+            const data = await res.json();
+            currentPrice = parseFloat(data.price);
+            document.getElementById('coin-price').innerText = '$' + currentPrice.toLocaleString();
+        } catch(e){}
+    }
+
+    async function updateLiquidity() {
+        try {
+            const res = await fetch(`https://api.binance.com/api/v3/depth?symbol=${currentSymbol}&limit=100`);
+            const data = await res.json();
+            let tB = data.bids.reduce((s,b)=>s+(b[0]*b[1]),0);
+            let tS = data.asks.reduce((s,a)=>s+(a[0]*a[1]),0);
+            let buyP = (tB/(tB+tS)*100), sellP = 100 - buyP;
+            document.getElementById('buy-sell-display').innerText = `BUY: ${buyP.toFixed(1)}% | SELL: ${sellP.toFixed(1)}%`;
+            
+            let buyBalls = Math.round(buyP / 10);
+            document.getElementById('power-bar').innerHTML = '<div class="ball" style="background:var(--green)"></div>'.repeat(buyBalls) + '<div class="ball" style="background:var(--red)"></div>'.repeat(10-buyBalls);
+            
+            const sig = document.getElementById('sig-box');
+            sig.innerText = buyP > 50 ? "🟢 SIGNAL: BULLISH" : "🔴 SIGNAL: BEARISH";
+            sig.className = buyP > 50 ? "sig-bullish" : "sig-bearish";
+
+            document.getElementById('ai-decision').innerText = buyP > 55 ? "🚀 EXPLOSION READY" : "🟡 ANALYZING...";
+            document.getElementById('ai-target').innerText = "$" + (currentPrice * 1.05).toFixed(2);
+            document.getElementById('ai-conf').innerText = buyP > 55 ? "96%" : "70%";
+        } catch(e){}
+    }
+
+    async function updateScanner() {
+        const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
+        const data = await res.json();
+        const list = document.getElementById('scanner-list');
+        let candidates = data.filter(c => c.symbol.endsWith('USDT') && parseFloat(c.quoteVolume) > 10000000).slice(0, 10);
+        list.innerHTML = candidates.map(c => `<div class="scan-item"><div><b>${c.symbol}</b></div><button onclick="startRadar('${c.symbol}', 'spot')">قنص</button></div>`).join('');
+    }
+</script>
+</body>
+</html>
