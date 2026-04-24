@@ -7,7 +7,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <style>
-        :root { --gold: #fbbf24; --ghost: #a855f7; --bg: #000; --card: #080808; --red: #ef4444; --green: #22c55e; }
+        :root { --gold: #fbbf24; --ghost: #a855f7; --bg: #000; --card: #080808; --red: #ef4444; --green: #22c55e; --blue: #3b82f6; }
         
         #zoom-wrapper { width: 100vw; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         #zoom-container { transition: transform 0.3s ease; transform-origin: top center; width: 100%; display: flex; flex-direction: column; align-items: center; }
@@ -73,8 +73,11 @@
         .scan-item { background: #080808; border: 1px solid #222; padding: 15px; border-radius: 15px; margin-bottom: 10px; border-left: 4px solid var(--ghost); display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
         .scan-item.spike { border-color: var(--green); box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); animation: blink 1s infinite; }
         
-        @keyframes blink { 0% { background: #080808; } 50% { background: #062010; } 100% { background: #080808; } }
+        /* القسم الجديد */
+        .bottom-scan-item { background: #0a0a1a; border: 1px solid var(--blue); padding: 15px; border-radius: 15px; margin-bottom: 10px; border-right: 4px solid var(--gold); display: flex; justify-content: space-between; align-items: center; }
+        .accumulation-tag { background: var(--blue); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 5px; }
 
+        @keyframes blink { 0% { background: #080808; } 50% { background: #062010; } 100% { background: #080808; } }
         .bold-tag { background: var(--green); color: #000; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; animation: pulse 0.5s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
@@ -114,6 +117,13 @@
                 <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
                 <button class="tab-btn active" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
             </div>
+            
+            <div style="color:var(--blue); font-weight:bold; margin-bottom:15px; text-align:right; padding:0 10px;">💎 قناص القيعان (تجميع الحيتان):</div>
+            <div id="bottom-scanner-list"></div>
+            
+            <hr style="border:0; border-top:1px solid #222; margin:20px 0;">
+            
+            <div style="color:var(--ghost); font-weight:bold; margin-bottom:15px; text-align:right; padding:0 10px;">🚀 مراقب السيولة والارتداد:</div>
             <div id="scanner-list"></div>
         </div>
 
@@ -196,7 +206,7 @@
         document.getElementById('search-screen').style.display = tab === 'search' ? 'block' : 'none';
         document.getElementById('scanner-screen').style.display = tab === 'scanner' ? 'block' : 'none';
         document.getElementById('radar-ui').style.display = tab === 'radar' ? 'block' : 'none';
-        if(tab === 'scanner') { updateScanner(); if(!scanInt) scanInt = setInterval(updateScanner, 5000); }
+        if(tab === 'scanner') { updateScanner(); updateBottomScanner(); if(!scanInt) scanInt = setInterval(() => { updateScanner(); updateBottomScanner(); }, 5000); }
         else { clearInterval(scanInt); scanInt = null; }
     }
 
@@ -260,6 +270,38 @@
         });
     }
 
+    // القسم الجديد: عملات في قاع ومعها تجميع
+    async function updateBottomScanner() {
+        try {
+            const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
+            const data = await res.json();
+            const list = document.getElementById('bottom-scanner-list');
+            
+            let bottomCoins = data.filter(c => {
+                const low = parseFloat(c.lowPrice);
+                const current = parseFloat(c.lastPrice);
+                const volume = parseFloat(c.quoteVolume);
+                // شرط القاع: السعر الحالي قريب جدا من ادنى سعر (اقل من 1% فرق) مع سيولة قوية
+                const nearBottom = ((current - low) / low) * 100 < 1.0;
+                return c.symbol.endsWith('USDT') && nearBottom && volume > 2000000;
+            }).slice(0, 5);
+
+            let html = '';
+            bottomCoins.forEach(c => {
+                html += `
+                    <div class="bottom-scan-item">
+                        <div style="text-align:right">
+                            <div style="color:var(--blue); font-weight:bold; font-size:15px;">💎 ${c.symbol} <span class="accumulation-tag">تجميع حيتان 🐳</span></div>
+                            <div style="color:var(--gold); font-size:11px;">الهدف المتوقع: +15% 📈</div>
+                        </div>
+                        <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--blue); color:#fff; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">متابعة</button>
+                    </div>
+                `;
+            });
+            list.innerHTML = html || '<div style="color:#555; font-size:11px;">جاري البحث عن فرص في القاع...</div>';
+        } catch(e) {}
+    }
+
     async function updateScanner() {
         try {
             const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
@@ -293,7 +335,7 @@
                                 <div style="color:var(--green); font-size:12px; font-weight:bold;">PRE-PUMP: ${change}%</div>
                                 <div style="color:#666; font-size:10px;">VOLUME: ${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div>
                             </div>
-                            <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--gold); color:#000; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold; box-shadow: 0 4px 10px rgba(251,191,36,0.2);">قنص 🎯</button>
+                            <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--gold); color:#000; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold;">قنص 🎯</button>
                         </div>
                     `;
                 });
