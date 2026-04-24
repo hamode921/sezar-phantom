@@ -7,7 +7,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <style>
-        /* المتغيرات الأساسية - تم توحيدها للذهبي والموف */
         :root { --gold: #fbbf24; --ghost: #a855f7; --bg: #000; --card: #080808; --red: #ef4444; --green: #22c55e; }
         
         #zoom-wrapper { width: 100vw; overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -15,45 +14,35 @@
         
         body { background: var(--bg); color: #fff; font-family: monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 10px; overflow-x: hidden; }
         
-        /* التبويبات */
         .nav-tabs { display: flex; gap: 5px; width: 95%; margin-bottom: 20px; }
         .tab-btn { flex: 1; padding: 10px 5px; border-radius: 10px; border: 1px solid var(--gold); background: #000; color: var(--gold); font-weight: bold; cursor: pointer; font-size: 11px; }
         .tab-btn.active { background: var(--gold); color: #000; }
 
-        /* الهيدر والعلامة التجارية */
-        .sezar-brand { margin-bottom: 30px; text-align: center; }
+        #search-screen, #scanner-screen, #bottom-scanner-screen { display: none; width: 100%; max-width: 450px; text-align: center; margin-top: 20px; }
+        .sezar-brand { margin-bottom: 30px; }
         .sezar-brand .sub-text { font-size: 28px; font-weight: bold; color: var(--gold); text-shadow: 0 0 15px rgba(251, 191, 36, 0.5); }
         
-        /* تصميم الكرت الموحد (مطابق للصورة الأولى 100%) */
-        .scan-item, .bottom-scan-item { 
+        /* تصميم الكارت الذهبي الموحد - مطابق للصور 100% */
+        .scan-item { 
             background: #080808; 
-            border: 1px solid #1a1a1a; 
+            border: 1px solid #222; 
             padding: 15px; 
             border-radius: 15px; 
             margin-bottom: 10px; 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            transition: 0.3s;
-            width: 100%;
-            box-sizing: border-box;
+            transition: 0.3s; 
         }
 
-        /* تمييز القناص ميم بالموف */
-        .scan-item { border-left: 5px solid var(--ghost); }
-        .scan-item.spike { border-color: var(--green); animation: blink 1s infinite; }
+        /* تنسيق البيانات جهة اليمين كما في كودك الأصلي */
+        .item-data { text-align: right; }
+        .item-symbol { color: var(--gold); font-weight: bold; font-size: 16px; display: flex; align-items: center; }
+        .item-perc { color: var(--green); font-size: 12px; font-weight: bold; }
+        .item-vol { color: #666; font-size: 10px; }
 
-        /* تمييز قناص القيعان بالذهبي (بدون أزرق) */
-        .bottom-scan-item { border-left: 5px solid var(--gold); }
-
-        /* نصوص البيانات (جهة اليسار) */
-        .card-info { text-align: left; }
-        .coin-title { color: var(--gold); font-weight: bold; font-size: 16px; display: block; margin-bottom: 2px; }
-        .stat-green { color: var(--green); font-size: 12px; font-weight: bold; }
-        .stat-gray { color: #666; font-size: 10px; }
-
-        /* الأزرار الذهبية (جهة اليمين) */
-        .btn-action { 
+        /* الزر الذهبي جهة اليسار */
+        .btn-hunt { 
             background: var(--gold); 
             color: #000; 
             border: none; 
@@ -61,22 +50,15 @@
             border-radius: 10px; 
             cursor: pointer; 
             font-weight: bold; 
-            font-size: 14px;
         }
 
-        /* بقية الستايلات الأصلية الخاصة بك */
-        .search-input { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 18px; width: 95%; border-radius: 15px; font-size: 16px; outline: none; text-align: center; margin-bottom: 30px; }
-        #search-screen, #scanner-screen, #bottom-scanner-screen { display: none; width: 100%; max-width: 450px; text-align: center; }
-        @keyframes blink { 0% { background: #080808; } 50% { background: #062010; } 100% { background: #080808; } }
-        
-        /* رادار السيولة */
         #radar-ui { display: none; width: 100%; max-width: 450px; }
         .price-box { border: 1px dashed #555; padding: 15px; text-align: center; font-size: 32px; font-weight: 900; background: #0a0a0a; color: #00d2ff; }
         .contact-dev { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); padding: 15px 0; display: flex; justify-content: space-around; border-top: 1px solid #222; }
         .contact-dev a { color: var(--gold); text-decoration: none; font-size: 11px; border: 1px solid var(--gold); padding: 8px 16px; border-radius: 5px; }
     </style>
 </head>
-<body onload="checkAuth()">
+<body onload="switchTab('search')">
 
 <div id="zoom-wrapper">
     <div id="zoom-container">
@@ -87,8 +69,7 @@
                 <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
                 <button class="tab-btn" onclick="switchTab('bottom')">💎 قناص القيعان</button>
             </div>
-            <input type="text" class="search-input" id="search-input" placeholder="🔍 ابحث..." oninput="searchCoins()">
-            <div id="results-list"></div>
+            <div style="color:var(--gold)">ابحث عن العملات هنا...</div>
         </div>
 
         <div id="scanner-screen">
@@ -114,77 +95,64 @@
         </div>
 
         <div id="radar-ui">
-            <button onclick="goBack()" style="background:var(--gold); padding:10px; border-radius:5px; margin-bottom:10px;">🔙 رجوع</button>
+            <button onclick="switchTab('search')" style="background:var(--gold); border:none; padding:10px; border-radius:5px; margin-bottom:15px;">🔙 رجوع</button>
             <div class="price-box" id="coin-price">0.00</div>
         </div>
     </div>
 </div>
 
 <script>
-    // الدوال الأساسية من كودك
+    let scanInt;
+
     function switchTab(tab) {
         document.getElementById('search-screen').style.display = tab === 'search' ? 'block' : 'none';
         document.getElementById('scanner-screen').style.display = tab === 'scanner' ? 'block' : 'none';
         document.getElementById('bottom-scanner-screen').style.display = tab === 'bottom' ? 'block' : 'none';
         document.getElementById('radar-ui').style.display = tab === 'radar' ? 'block' : 'none';
-        if(tab === 'scanner') updateScanner();
-        if(tab === 'bottom') updateBottomScanner();
+        
+        clearInterval(scanInt);
+        if(tab === 'scanner') { updateScanner(); scanInt = setInterval(updateScanner, 5000); }
+        if(tab === 'bottom') { updateBottomScanner(); scanInt = setInterval(updateBottomScanner, 5000); }
     }
 
-    // قناص القيعان - تم تعديله ليصبح نسخة طبق الأصل من الميم
-    async function updateBottomScanner() {
-        try {
-            const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
-            const data = await res.json();
-            const list = document.getElementById('bottom-scanner-list');
-            let bottomCoins = data.filter(c => {
-                const low = parseFloat(c.lowPrice), current = parseFloat(c.lastPrice), volume = parseFloat(c.quoteVolume);
-                return c.symbol.endsWith('USDT') && ((current - low) / low) * 100 < 1.2 && volume > 2000000;
-            }).slice(0, 10);
-
-            let html = '';
-            bottomCoins.forEach(c => {
-                html += `
-                    <div class="bottom-scan-item">
-                        <div class="card-info">
-                            <span class="coin-title">${c.symbol}</span>
-                            <div class="stat-green">💎 تجميع حيتان</div>
-                            <div class="stat-gray">VOLUME: ${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div>
-                        </div>
-                        <button class="btn-action" onclick="startRadar('${c.symbol}', 'spot')">قنص 🎯</button>
-                    </div>`;
-            });
-            list.innerHTML = html;
-        } catch(e) {}
-    }
-
-    // القناص ميم - الكود الأصلي الخاص بك
     async function updateScanner() {
-        try {
-            const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
-            const data = await res.json();
-            const list = document.getElementById('scanner-list');
-            let candidates = data.filter(c => c.symbol.endsWith('USDT') && parseFloat(c.priceChangePercent) > 0).slice(0, 10);
-
-            let html = '';
-            candidates.forEach(c => {
-                html += `
-                    <div class="scan-item">
-                        <div class="card-info">
-                            <span class="coin-title">${c.symbol}</span>
-                            <div class="stat-green">PRE-PUMP: ${c.priceChangePercent}%</div>
-                            <div class="stat-gray">VOLUME: ${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div>
-                        </div>
-                        <button class="btn-action" onclick="startRadar('${c.symbol}', 'spot')">قنص 🎯</button>
-                    </div>`;
-            });
-            list.innerHTML = html;
-        } catch(e) {}
+        const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
+        const data = await res.json();
+        const list = document.getElementById('scanner-list');
+        let candidates = data.filter(c => c.symbol.endsWith('USDT') && parseFloat(c.priceChangePercent) > 2).slice(0, 8);
+        list.innerHTML = candidates.map(c => `
+            <div class="scan-item">
+                <button class="btn-hunt" onclick="startRadar('${c.symbol}')">قنص 🎯</button>
+                <div class="item-data">
+                    <div class="item-symbol">🚀 ${c.symbol}</div>
+                    <div class="item-perc">PRE-PUMP: ${c.priceChangePercent}%</div>
+                    <div class="item-vol">VOLUME: ${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div>
+                </div>
+            </div>`).join('');
     }
 
-    function checkAuth() { switchTab('search'); }
-    function goBack() { switchTab('search'); }
-    function startRadar(s, m) { switchTab('radar'); document.getElementById('coin-price').innerText = s; }
+    async function updateBottomScanner() {
+        const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
+        const data = await res.json();
+        const list = document.getElementById('bottom-scanner-list');
+        // فلتر القيعان: العملة قريبة من أدنى سعر في 24 ساعة
+        let bottomCoins = data.filter(c => {
+            const low = parseFloat(c.lowPrice), current = parseFloat(c.lastPrice);
+            return c.symbol.endsWith('USDT') && ((current - low) / low) * 100 < 1.2 && parseFloat(c.quoteVolume) > 2000000;
+        }).slice(0, 8);
+
+        list.innerHTML = bottomCoins.map(c => `
+            <div class="scan-item" style="border-left: 5px solid var(--gold);">
+                <button class="btn-hunt" onclick="startRadar('${c.symbol}')">قنص 🎯</button>
+                <div class="item-data">
+                    <div class="item-symbol">💎 ${c.symbol}</div>
+                    <div class="item-perc">تجميع حيتان 🐳</div>
+                    <div class="item-vol">VOLUME: ${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div>
+                </div>
+            </div>`).join('');
+    }
+
+    function startRadar(s) { switchTab('radar'); document.getElementById('coin-price').innerText = s; }
 </script>
 </body>
 </html>
