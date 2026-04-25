@@ -238,7 +238,9 @@
             const data = await res.json();
             const list = document.getElementById('alpha-list');
             const now = Date.now();
+
             for (let [sym, expire] of lockedAlphaCoins) { if (now > expire) lockedAlphaCoins.delete(sym); }
+
             let candidates = data.filter(c => {
                 const change = parseFloat(c.priceChangePercent);
                 const volume = parseFloat(c.quoteVolume);
@@ -250,22 +252,29 @@
                 lastVolMap.set(c.symbol, currentVol);
                 return { ...c, volIncrease };
             }).filter(c => c.volIncrease > 0.5);
+
             candidates.forEach(c => { if(!lockedAlphaCoins.has(c.symbol)) lockedAlphaCoins.set(c.symbol, now + 30000); });
+
             let finalDisplay = [];
             for (let [sym, expire] of lockedAlphaCoins) {
                 const coinData = data.find(d => d.symbol === sym);
                 if(coinData) finalDisplay.push({...coinData, isLocked: true, timeLeft: Math.ceil((expire - now)/1000)});
             }
+            
             data.filter(c => c.symbol.endsWith('USDT') && parseFloat(c.quoteVolume) > 1000000)
                 .sort((a,b) => parseFloat(b.priceChangePercent) - parseFloat(a.priceChangePercent))
                 .forEach(c => { if(!finalDisplay.find(f => f.symbol === c.symbol)) finalDisplay.push(c); });
+
             let html = '';
             finalDisplay.slice(0, 15).forEach(c => {
                 const isLocked = c.isLocked || false;
                 html += `<div class="scan-item ${isLocked ? 'blink-border' : ''}" style="border-left: 5px solid var(--gold)">
                     <div style="text-align:right">
-                        <div style="color:var(--gold); font-weight:bold; font-size:16px;">🪐 ${c.symbol}</div>
-                        <div style="color:var(--green); font-size:12px; font-weight:bold;">CHG: ${c.priceChangePercent}%</div>
+                        <div style="color:var(--gold); font-weight:bold; font-size:16px; display:flex; align-items:center;">
+                            🪐 ${c.symbol} <span class="alpha-tag">ALPHA WEB3</span>
+                            ${isLocked ? `<span style="font-size:10px; color:var(--red); font-weight:bold; margin-right:8px;">[وميض: ${c.timeLeft}s]</span>` : ''}
+                        </div>
+                        <div style="color:var(--green); font-size:12px; font-weight:bold;">قوة الانفجار: ${c.priceChangePercent}%</div>
                         <div style="color:#666; font-size:10px;">VOLUME: ${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div>
                     </div>
                     <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--gold); color:#000; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold;">قنص 🎯</button>
@@ -299,22 +308,29 @@
                 const coinData = data.find(d => d.symbol === sym);
                 if(coinData) finalDisplay.push({...coinData, isLocked: true, timeLeft: Math.ceil((expire - now)/1000)});
             }
-            data.filter(c => c.symbol.endsWith('USDT') && parseFloat(c.quoteVolume) > 3000000)
-              .sort((a,b) => parseFloat(b.priceChangePercent) - parseFloat(a.priceChangePercent))
+            data.filter(c => {
+                const change = parseFloat(c.priceChangePercent);
+                const volume = parseFloat(c.quoteVolume);
+                return c.symbol.endsWith('USDT') && change >= 0 && change <= 15 && volume > 3000000;
+            }).sort((a,b) => parseFloat(b.priceChangePercent) - parseFloat(a.priceChangePercent))
               .forEach(c => { if(!finalDisplay.find(f => f.symbol === c.symbol)) finalDisplay.push(c); });
             let htmlContent = '';
             finalDisplay.slice(0, 15).forEach(c => {
+                const change = parseFloat(c.priceChangePercent);
                 const isLocked = c.isLocked || false;
                 htmlContent += `<div class="scan-item ${isLocked ? 'blink-border' : ''}" style="border-left: 5px solid ${isLocked ? 'var(--gold)' : 'var(--ghost)'}">
                     <div style="text-align:right">
-                        <div style="color:var(--gold); font-weight:bold; font-size:16px;">🛰️ ${c.symbol}</div>
-                        <div style="color:var(--green); font-size:12px; font-weight:bold;">CHG: ${c.priceChangePercent}%</div>
-                        <div style="color:#666; font-size:10px;">VOL: ${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div>
+                        <div style="color:var(--gold); font-weight:bold; font-size:16px; display:flex; align-items:center;">
+                            ${isLocked ? '🎯 ' : '🛰️ '}${c.symbol}
+                            ${isLocked ? `<span style="font-size:10px; color:var(--red); font-weight:bold; margin-right:8px;">[تثبيت: ${c.timeLeft}s]</span>` : ''}
+                        </div>
+                        <div style="color:var(--green); font-size:12px; font-weight:bold;">قوة الانفجار: ${c.priceChangePercent}%</div>
+                        <div style="color:#666; font-size:10px;">VOLUME: ${(parseFloat(c.quoteVolume)/1000000).toFixed(2)}M</div>
                     </div>
                     <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--gold); color:#000; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold;">قنص 🎯</button>
                 </div>`;
             });
-            list.innerHTML = htmlContent;
+            list.innerHTML = htmlContent || '<div style="color:#555; margin-top:20px;">جاري مراقبة العملات المتهيأة...</div>';
         } catch (e) {}
     }
 
@@ -334,11 +350,15 @@
             }).sort((a,b) => b.huntScore - a.huntScore).slice(0, 10);
             let html = '';
             candidates.forEach(c => {
-                html += `<div class="scan-item">
+                const isStrong = c.huntScore > 5;
+                html += `<div class="scan-item ${isStrong ? 'whale-alert' : ''}">
                     <div style="text-align:right">
-                        <div style="color:var(--gold); font-weight:bold; font-size:16px;">🐋 ${c.symbol}</div>
+                        <div style="color:var(--gold); font-weight:bold; font-size:16px;">
+                            ${isStrong ? '🐋 ' : ''}${c.symbol}
+                            ${isStrong ? '<span class="hunt-tag">ACCUMULATION 🔥</span>' : ''}
+                        </div>
                         <div style="color:var(--green); font-size:11px;">PRE-EXPLOSION: +5% ~ +15%</div>
-                        <div style="color:#888; font-size:10px;">VOL: ${(parseFloat(c.quoteVolume)/1000000).toFixed(1)}M</div>
+                        <div style="color:#888; font-size:10px;">VOL: ${(parseFloat(c.quoteVolume)/1000000).toFixed(1)}M | CHG: ${c.priceChangePercent}%</div>
                     </div>
                     <button onclick="startRadar('${c.symbol}', 'spot')" style="background:var(--green); color:#000; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">صيد 🎯</button>
                 </div>`;
@@ -362,31 +382,22 @@
             }).sort((a,b) => Math.abs(parseFloat(b.priceChangePercent)) - Math.abs(parseFloat(a.priceChangePercent))).slice(0, 12);
             let html = '';
             candidates.forEach(c => {
-                const actionText = c.isPump ? "قنص 🎯" : "تحذير ⚠️";
-                const actionColor = c.isPump ? "var(--green)" : "var(--red)";
                 html += `<div class="scan-item" style="border-right: 5px solid ${c.isPump ? 'var(--green)' : 'var(--red)'}">
                     <div style="text-align:right">
-                        <div style="color:var(--gold); font-weight:bold; font-size:16px;">${c.isPump ? '🚀 ' : '📉 '}${c.symbol}</div>
-                        <div style="color:${c.isPump ? 'var(--green)' : 'var(--red)'}; font-size:11px;">CHG: ${c.priceChangePercent}%</div>
-                        <div style="color:#888; font-size:10px;">VOL: ${(parseFloat(c.quoteVolume)/1000000).toFixed(1)}M</div>
+                        <div style="color:var(--gold); font-weight:bold; font-size:16px;">
+                            ${c.isPump ? '🚀 ' : '📉 '}${c.symbol}
+                            ${c.isPump ? '<span class="hunt-tag">PUMPING 🔥</span>' : '<span class="dump-tag">DUMPING 📉</span>'}
+                        </div>
+                        <div style="color:${c.isPump ? 'var(--green)' : 'var(--red)'}; font-size:11px;">
+                            ${c.isPump ? 'MOON MISSION: ' + c.priceChangePercent + '%' : 'LIQUIDITY CRASH: ' + c.priceChangePercent + '%'}
+                        </div>
+                        <div style="color:#888; font-size:10px;">VOL: ${(parseFloat(c.quoteVolume)/1000000).toFixed(1)}M | INSIDER LEVEL: HIGH</div>
                     </div>
-                    <button onclick="startRadar('${c.symbol}', 'spot')" style="background:${actionColor}; color:#000; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">${actionText}</button>
+                    <button onclick="startRadar('${c.symbol}', 'spot')" style="background:${c.isPump ? 'var(--green)' : 'var(--red)'}; color:#000; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">قنص 🎯</button>
                 </div>`;
             });
-            list.innerHTML = html;
+            list.innerHTML = html || '<div style="color:#555; margin-top:20px;">جاري مراقبة التحركات العنيفة...</div>';
         } catch (e) {}
-    }
-
-    function startRadar(symbol, mode) {
-        currentSymbol = symbol; currentMode = mode; switchTab('radar');
-        document.getElementById('iceberg-list').innerHTML = '';
-        lastBids = []; lastAsks = [];
-        document.getElementById('current-coin-name').innerText = `[ ${symbol} ] - ${mode.toUpperCase()}`;
-        document.getElementById('chart-frame').src = `https://s.tradingview.com/widgetembed/?symbol=BINANCE:${symbol}${mode==='futures'?'PERP':''}&interval=1&theme=dark`;
-        stopIntervals(); updatePrice(); updateLiquidity();
-        pInt = setInterval(updatePrice, 1000); lInt = setInterval(updateLiquidity, 5000);
-        iInt = setInterval(updateIceberg, 1000);
-        tInt = setInterval(() => { timeLeft--; if(timeLeft<0) timeLeft=30; document.getElementById('timer').innerText = timeLeft; }, 1000);
     }
 
     async function checkAuth() {
@@ -401,7 +412,6 @@
             }
         }
     }
-
     async function activate() { 
         const k = document.getElementById('pass-key').value;
         const err = document.getElementById('error-msg');
@@ -418,7 +428,6 @@
             localStorage.setItem('sz_ultimate_v1_key', k); showSearch(); 
         } else { err.innerText = "❌ الكود خطأ!"; err.style.display = 'block'; }
     }
-
     async function showSearch() {
         document.getElementById('auth-screen').style.display = 'none';
         switchTab('search');
@@ -432,7 +441,6 @@
         }
         searchCoins();
     }
-
     function searchCoins() {
         const query = document.getElementById('search-input').value.toUpperCase();
         const list = document.getElementById('results-list');
@@ -449,6 +457,17 @@
         });
     }
 
+    function startRadar(symbol, mode) {
+        currentSymbol = symbol; currentMode = mode; switchTab('radar');
+        document.getElementById('iceberg-list').innerHTML = '';
+        lastBids = []; lastAsks = [];
+        document.getElementById('current-coin-name').innerText = `[ ${symbol} ] - ${mode.toUpperCase()}`;
+        document.getElementById('chart-frame').src = `https://s.tradingview.com/widgetembed/?symbol=BINANCE:${symbol}${mode==='futures'?'PERP':''}&interval=1&theme=dark`;
+        stopIntervals(); updatePrice(); updateLiquidity();
+        pInt = setInterval(updatePrice, 1000); lInt = setInterval(updateLiquidity, 5000);
+        iInt = setInterval(updateIceberg, 1000);
+        tInt = setInterval(() => { timeLeft--; if(timeLeft<0) timeLeft=30; document.getElementById('timer').innerText = timeLeft; }, 1000);
+    }
     function goBack() { switchTab('alpha'); }
     function stopIntervals() { clearInterval(pInt); clearInterval(lInt); clearInterval(iInt); clearInterval(tInt); clearInterval(scanInt); clearInterval(huntInt); clearInterval(pdInt); clearInterval(alphaInt); timeLeft = 30; }
     
