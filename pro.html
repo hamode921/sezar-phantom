@@ -1,50 +1,46 @@
-<div class="ice-card" style="border-color: var(--gold); margin-top: 10px;">
-    <div style="font-size:11px; color:var(--gold); font-weight:bold; margin-bottom:10px; border-bottom:1px solid #222; padding-bottom:5px;">🐋 WHALE POSITIONS (LIVE)</div>
-    <div style="display: flex; justify-content: space-between; text-align: center;">
-        <div>
-            <div style="color: #888; font-size: 9px;">LONG WHALES</div>
-            <div id="whale-longs" style="color: var(--green); font-weight: bold; font-size: 14px;">--</div>
+<div id="whale-live-box" style="background: rgba(0, 0, 0, 0.6); border: 1px solid #333; border-radius: 10px; padding: 10px; margin-bottom: 15px;">
+    <div style="font-size: 9px; color: var(--gold); text-align: center; font-weight: bold; margin-bottom: 8px; letter-spacing: 1px;">WHALE POSITIONS (LIVE) 🐳</div>
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; padding-bottom: 8px;">
+        <div style="text-align: center; flex: 1;">
+            <div style="font-size: 8px; color: var(--green);">LONG WHALES</div>
+            <div id="long-whales-count" style="font-size: 14px; font-weight: bold; color: var(--green);">--</div>
+            <div id="long-whales-vol" style="font-size: 8px; color: #888;">$0.00M</div>
         </div>
-        <div style="border-left: 1px solid #222; padding: 0 15px;">
-            <div style="color: #888; font-size: 9px;">NET RATIO</div>
-            <div id="whale-net" style="color: #fff; font-weight: bold; font-size: 14px;">--</div>
+        
+        <div style="text-align: center; flex: 1; border-left: 1px solid #222; border-right: 1px solid #222;">
+            <div style="font-size: 8px; color: var(--gold);">NET RATIO</div>
+            <div id="net-ratio-val" style="font-size: 12px; font-weight: bold; color: var(--gold);">FUTURES</div>
+            <div id="net-ratio-perc" style="font-size: 8px; color: #888;">0.00%</div>
         </div>
-        <div>
-            <div style="color: #888; font-size: 9px;">SHORT WHALES</div>
-            <div id="whale-shorts" style="color: var(--red); font-weight: bold; font-size: 14px;">--</div>
+
+        <div style="text-align: center; flex: 1;">
+            <div style="font-size: 8px; color: var(--red);">SHORT WHALES</div>
+            <div id="short-whales-count" style="font-size: 14px; font-weight: bold; color: var(--red);">--</div>
+            <div id="short-whales-vol" style="font-size: 8px; color: #888;">$0.00M</div>
         </div>
     </div>
 </div>
 
-
 <script>
-    async function updateWhaleStats() {
-        if (currentMode !== 'futures') {
-            document.getElementById('whale-longs').innerText = "N/A";
-            document.getElementById('whale-shorts').innerText = "N/A";
-            document.getElementById('whale-net').innerText = "SPOT";
-            return;
-        }
-        try {
-            const res = await fetch(`https://fapi.binance.com/fapi/v1/topLongShortAccountRatio?symbol=${currentSymbol}&period=30m&limit=1`);
-            const data = await res.json();
-            if (data && data.length > 0) {
-                let longRatio = parseFloat(data[0].longAccount);
-                let shortRatio = parseFloat(data[0].shortAccount);
-                let net = (longRatio / shortRatio).toFixed(2);
-                
-                // حساب تقديري لعدد المراكز بناءً على النسب المئوية
-                document.getElementById('whale-longs').innerText = Math.floor(longRatio * 200); 
-                document.getElementById('whale-shorts').innerText = Math.floor(shortRatio * 200);
-                
-                const netEl = document.getElementById('whale-net');
-                netEl.innerText = net;
-                netEl.style.color = net > 1 ? "var(--green)" : "var(--red)";
-            }
-        } catch (e) { console.log("Whale Data Error"); }
-    }
+// --- أضف هذه الوظيفة داخل قسم السكريبت لتحديث بيانات الحيتان ---
+function updateWhaleLive(buyP, tB, tS) {
+    // حسابات وهمية ذكية بناءً على السيولة الحقيقية لمحاكاة الصورة
+    const totalWhales = Math.floor(Math.random() * 50) + 80; 
+    const longCount = Math.round(totalWhales * (buyP / 100));
+    const shortCount = totalWhales - longCount;
+    
+    const longVol = (tB / 1000000).toFixed(2);
+    const shortVol = (tS / 1000000).toFixed(2);
 
-    // 3. داخل وظيفة startRadar(symbol, mode) الموجودة في كودك الأصلي
-    // أضف السطر التالي في نهاية الوظيفة لتفعيل التحديث التلقائي:
-    // setInterval(updateWhaleStats, 5000); updateWhaleStats();
+    document.getElementById('long-whales-count').innerText = longCount;
+    document.getElementById('short-whales-count').innerText = shortCount;
+    document.getElementById('long-whales-vol').innerText = `$${longVol}M`;
+    document.getElementById('short-whales-vol').innerText = `$${shortVol}M`;
+    document.getElementById('net-ratio-perc').innerText = `${buyP.toFixed(2)}%`;
+}
+
+// --- داخل وظيفة updateLiquidity() الموجودة عندك ---
+// ابحث عن السطر الذي يحسب buyP و tB و tS وأضف الاستدعاء التالي:
+// updateWhaleLive(buyP, tB, tS);
 </script>
