@@ -44,6 +44,7 @@
 
         .row { display: flex; justify-content: space-between; padding: 12px 5px; border-bottom: 1px solid #111; font-size: 13px; font-weight: bold; }
         .ice-card { background: var(--card); border: 1px solid var(--ghost); padding: 15px; border-radius: 12px; margin-top: 20px; width: 100%; box-sizing: border-box; }
+        .ice-card span { font-family: monospace; }
         .ai-signal-box { background: linear-gradient(45deg, #080808, #111); border: 1px double var(--gold); border-radius: 10px; padding: 15px; margin: 15px 0; text-align: center; }
         #ai-decision { font-size: 18px; font-weight: 900; margin: 5px 0; }
         .ai-meta { display: flex; justify-content: space-around; font-size: 10px; color: #888; margin-top: 5px; }
@@ -52,7 +53,7 @@
         .sig-bearish { background: #450a0a; color: #ef4444; border: 1px solid #ef4444; }
         
         .nav-tabs { display: flex; gap: 5px; width: 95%; margin-bottom: 20px; flex-wrap: wrap; }
-        .tab-btn { flex: 1; min-width: 80px; padding: 10px 5px; border-radius: 8px; border: 1px solid var(--gold); background: #000; color: var(--gold); font-weight: bold; cursor: pointer; font-size: 11px; }
+        .tab-btn { flex: 1; min-width: 65px; padding: 10px 3px; border-radius: 8px; border: 1px solid var(--gold); background: #000; color: var(--gold); font-weight: bold; cursor: pointer; font-size: 10px; white-space: nowrap; }
         
         .tab-btn.active { background: var(--gold) !important; color: #000 !important; border: 1px solid var(--gold) !important; }
 
@@ -60,7 +61,7 @@
         .hunt-tag { background: rgba(34, 197, 94, 0.1); color: var(--green); border: 1px solid var(--green); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
         .dump-tag { background: rgba(239, 68, 68, 0.1); color: var(--red); border: 1px solid var(--red); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
         .alpha-tag { background: rgba(251, 191, 36, 0.1); color: var(--alpha); border: 1px solid var(--alpha); font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 5px; }
-        .magnet-tag { font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-right: 5px; }
+        .magnet-tag { font-size: 9px; padding: 2px 5px; border-radius: 4px; font-weight: 900; margin-right: 5px; }
         .tag-long { background: rgba(34, 197, 94, 0.1); color: var(--green); border: 1px solid var(--green); }
         .tag-short { background: rgba(239, 68, 68, 0.1); color: var(--red); border: 1px solid var(--red); }
         .whale-alert { border-color: var(--gold) !important; box-shadow: 0 0 15px rgba(251, 191, 36, 0.2); }
@@ -93,7 +94,7 @@
             <div class="nav-tabs">
                 <button class="tab-btn active" onclick="switchTab('alpha')">🪐 ألفا Web3</button>
                 <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
-                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
+                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص</button>
                 <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 BOTTOM</button>
                 <button class="tab-btn" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP</button>
                 <button class="tab-btn" onclick="switchTab('coinglass')" style="border-color: #00d2ff; color: #00d2ff;">🧲 السيولة</button>
@@ -106,7 +107,7 @@
             <div class="nav-tabs">
                 <button class="tab-btn" onclick="switchTab('alpha')">🪐 ألفا Web3</button>
                 <button class="tab-btn active" onclick="switchTab('search')">🔍 بحث</button>
-                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
+                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص</button>
                 <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 BOTTOM</button>
                 <button class="tab-btn" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP</button>
                 <button class="tab-btn" onclick="switchTab('coinglass')" style="border-color: #00d2ff; color: #00d2ff;">🧲 السيولة</button>
@@ -120,7 +121,7 @@
             <div class="nav-tabs">
                 <button class="tab-btn" onclick="switchTab('alpha')">🪐 ألفا Web3</button>
                 <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
-                <button class="tab-btn active" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
+                <button class="tab-btn active" onclick="switchTab('scanner')">🛰️ القناص</button>
                 <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 BOTTOM</button>
                 <button class="tab-btn" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP</button>
                 <button class="tab-btn" onclick="switchTab('coinglass')" style="border-color: #00d2ff; color: #00d2ff;">🧲 السيولة</button>
@@ -133,7 +134,7 @@
             <div class="nav-tabs">
                 <button class="tab-btn" onclick="switchTab('alpha')">🪐 ألفا Web3</button>
                 <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
-                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
+                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص</button>
                 <button class="tab-btn active" onclick="switchTab('whale-hunt')">🐋 BOTTOM</button>
                 <button class="tab-btn" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP</button>
                 <button class="tab-btn" onclick="switchTab('coinglass')" style="border-color: #00d2ff; color: #00d2ff;">🧲 السيولة</button>
@@ -146,7 +147,7 @@
             <div class="nav-tabs">
                 <button class="tab-btn" onclick="switchTab('alpha')">🪐 ألفا Web3</button>
                 <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
-                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
+                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص</button>
                 <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 BOTTOM</button>
                 <button class="tab-btn active" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP</button>
                 <button class="tab-btn" onclick="switchTab('coinglass')" style="border-color: #00d2ff; color: #00d2ff;">🧲 السيولة</button>
@@ -159,7 +160,7 @@
             <div class="nav-tabs">
                 <button class="tab-btn" onclick="switchTab('alpha')">🪐 ألفا Web3</button>
                 <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
-                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
+                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص</button>
                 <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 BOTTOM</button>
                 <button class="tab-btn" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP</button>
                 <button class="tab-btn active" onclick="switchTab('coinglass')" style="border-color: #00d2ff; color: #00d2ff;">🧲 السيولة</button>
@@ -250,7 +251,6 @@
 
     function setZoom(scale) { const container = document.getElementById('zoom-container'); container.style.transform = `scale(${scale})`; container.style.width = (100 / scale) + '%'; }
     
-    // إصلاح الخلل هنا لضمان إخفاء وإظهار الشاشة بشكل كامل
     function switchTab(tab) {
         document.getElementById('alpha-screen').style.display = tab === 'alpha' ? 'block' : 'none';
         document.getElementById('search-screen').style.display = tab === 'search' ? 'block' : 'none';
@@ -330,20 +330,15 @@
     async function updateAlpha() {
         try {
             const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
-            const data = await res.json();
-            const list = document.getElementById('alpha-list');
-            const now = Date.now();
+            const data = await res.json(); const list = document.getElementById('alpha-list'); const now = Date.now();
             for (let [sym, expire] of lockedAlphaCoins) { if (now > expire) lockedAlphaCoins.delete(sym); }
             let candidates = data.filter(c => {
-                const change = parseFloat(c.priceChangePercent);
-                const volume = parseFloat(c.quoteVolume);
+                const change = parseFloat(c.priceChangePercent); const volume = parseFloat(c.quoteVolume);
                 return c.symbol.endsWith('USDT') && change >= 1.5 && volume > 2000000;
             }).map(c => {
-                const currentVol = parseFloat(c.quoteVolume);
-                const prevVol = lastVolMap.get(c.symbol) || currentVol;
+                const currentVol = parseFloat(c.quoteVolume); const prevVol = lastVolMap.get(c.symbol) || currentVol;
                 const volIncrease = prevVol > 0 ? ((currentVol - prevVol) / prevVol) * 100 : 0;
-                lastVolMap.set(c.symbol, currentVol);
-                return { ...c, volIncrease };
+                lastVolMap.set(c.symbol, currentVol); return { ...c, volIncrease };
             }).filter(c => c.volIncrease > 0.5);
             candidates.forEach(c => { if(!lockedAlphaCoins.has(c.symbol)) lockedAlphaCoins.set(c.symbol, now + 30000); });
             let finalDisplay = [];
@@ -376,20 +371,15 @@
     async function updateScanner() {
         try {
             const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
-            const data = await res.json();
-            const list = document.getElementById('scanner-list');
-            const now = Date.now();
+            const data = await res.json(); const list = document.getElementById('scanner-list'); const now = Date.now();
             for (let [sym, expire] of lockedScannerCoins) { if (now > expire) lockedScannerCoins.delete(sym); }
             let spikeCandidates = data.filter(c => {
-                const change = parseFloat(c.priceChangePercent);
-                const volume = parseFloat(c.quoteVolume);
+                const change = parseFloat(c.priceChangePercent); const volume = parseFloat(c.quoteVolume);
                 return c.symbol.endsWith('USDT') && change >= 0 && change <= 15 && volume > 5000000;
             }).map(c => {
-                const currentVol = parseFloat(c.quoteVolume);
-                const prevVol = lastVolMap.get(c.symbol) || currentVol;
+                const currentVol = parseFloat(c.quoteVolume); const prevVol = lastVolMap.get(c.symbol) || currentVol;
                 const volIncrease = prevVol > 0 ? ((currentVol - prevVol) / prevVol) * 100 : 0;
-                lastVolMap.set(c.symbol, currentVol);
-                return { ...c, volIncrease };
+                lastVolMap.set(c.symbol, currentVol); return { ...c, volIncrease };
             }).filter(c => c.volIncrease > 0.8).sort((a,b) => b.volIncrease - a.volIncrease);
             spikeCandidates.forEach(c => { if(!lockedScannerCoins.has(c.symbol)) lockedScannerCoins.set(c.symbol, now + 30000); });
             let finalDisplay = [];
@@ -398,8 +388,7 @@
                 if(coinData) finalDisplay.push({...coinData, isLocked: true, timeLeft: Math.ceil((expire - now)/1000)});
             }
             data.filter(c => {
-                const change = parseFloat(c.priceChangePercent);
-                const volume = parseFloat(c.quoteVolume);
+                const change = parseFloat(c.priceChangePercent); const volume = parseFloat(c.quoteVolume);
                 return c.symbol.endsWith('USDT') && change >= 0 && change <= 15 && volume > 3000000;
             }).sort((a,b) => parseFloat(b.priceChangePercent) - parseFloat(a.priceChangePercent))
               .forEach(c => { if (!finalDisplay.find(f => f.symbol === c.symbol)) finalDisplay.push(c); });
@@ -424,15 +413,12 @@
     async function updateWhaleHunt() {
         try {
             const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
-            const data = await res.json();
-            const list = document.getElementById('whale-hunt-list');
+            const data = await res.json(); const list = document.getElementById('whale-hunt-list');
             let candidates = data.filter(c => {
-                const change = parseFloat(c.priceChangePercent);
-                const volume = parseFloat(c.quoteVolume);
+                const change = parseFloat(c.priceChangePercent); const volume = parseFloat(c.quoteVolume);
                 return c.symbol.endsWith('USDT') && change >= -1 && change <= 3 && volume > 10000000;
             }).map(c => {
-                const vol = parseFloat(c.quoteVolume);
-                const score = (vol / 50000000) + (parseFloat(c.priceChangePercent) * 2);
+                const vol = parseFloat(c.quoteVolume); const score = (vol / 50000000) + (parseFloat(c.priceChangePercent) * 2);
                 return { ...c, huntScore: score };
             }).sort((a,b) => b.huntScore - a.huntScore).slice(0, 10);
             let html = '';
@@ -457,11 +443,9 @@
     async function updatePumpDump() {
         try {
             const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
-            const data = await res.json();
-            const list = document.getElementById('pump-dump-list');
+            const data = await res.json(); const list = document.getElementById('pump-dump-list');
             let candidates = data.filter(c => {
-                const vol = parseFloat(c.quoteVolume);
-                const chg = parseFloat(c.priceChangePercent);
+                const vol = parseFloat(c.quoteVolume); const chg = parseFloat(c.priceChangePercent);
                 return c.symbol.endsWith('USDT') && (chg > 15 || chg < -10) && vol > 15000000;
             }).map(c => ({ ...c, isPump: parseFloat(c.priceChangePercent) > 0 })).sort((a,b) => Math.abs(parseFloat(b.priceChangePercent)) - Math.abs(parseFloat(a.priceChangePercent))).slice(0, 12);
             let html = '';
@@ -485,8 +469,7 @@
     }
 
     async function checkAuth() {
-        const savedKey = localStorage.getItem('sz_ultimate_v1_key');
-        const myId = localStorage.getItem('sz_device_id');
+        const savedKey = localStorage.getItem('sz_ultimate_v1_key'); const myId = localStorage.getItem('sz_device_id');
         if (savedKey && myId) {
             const doc = await db.collection("users").doc(savedKey).get();
             if (doc.exists) {
@@ -497,8 +480,7 @@
         }
     }
     async function activate() { 
-        const k = document.getElementById('pass-key').value;
-        const err = document.getElementById('error-msg');
+        const k = document.getElementById('pass-key').value; const err = document.getElementById('error-msg');
         err.style.display = 'none'; if(!k) return;
         const doc = await db.collection("users").doc(k).get();
         if (doc.exists) { 
@@ -512,12 +494,10 @@
         } else { err.innerText = "❌ الكود خطأ!"; err.style.display = 'block'; }
     }
     async function showSearch() {
-        document.getElementById('auth-screen').style.display = 'none';
-        switchTab('search');
+        document.getElementById('auth-screen').style.display = 'none'; switchTab('search');
         if (allCoins.length === 0) {
             const [spotRes, futRes] = await Promise.all([ fetch('https://api.binance.com/api/v3/exchangeInfo'), fetch('https://fapi.binance.com/fapi/v1/exchangeInfo') ]);
-            const spotData = await spotRes.json();
-            const futData = await futRes.json();
+            const spotData = await spotRes.json(); const futData = await futRes.json();
             let spotList = spotData.symbols.filter(s => s.status === 'TRADING' && s.symbol.endsWith('USDT')).map(s => ({s: s.symbol, m: 'spot'}));
             let futList = futData.symbols.filter(s => s.status === 'TRADING' && s.contractType === 'PERPETUAL').map(s => ({s: s.symbol, m: 'futures'}));
             allCoins = [...spotList, ...futList];
@@ -525,16 +505,12 @@
         searchCoins();
     }
     function searchCoins() {
-        const query = document.getElementById('search-input').value.toUpperCase();
-        const list = document.getElementById('results-list'); list.innerHTML = '';
-        let uniqueCoins = {};
-        allCoins.filter(c => c.s.includes(query)).forEach(c => { if (!uniqueCoins[c.s] || c.m === 'futures') uniqueCoins[c.s] = c; });
+        const query = document.getElementById('search-input').value.toUpperCase(); const list = document.getElementById('results-list'); list.innerHTML = '';
+        let uniqueCoins = {}; allCoins.filter(c => c.s.includes(query)).forEach(c => { if (!uniqueCoins[c.s] || c.m === 'futures') uniqueCoins[c.s] = c; });
         Object.values(uniqueCoins).slice(0, 15).forEach(c => {
-            const item = document.createElement('div'); item.className = 'coin-item';
-            const color = c.m === 'futures' ? '#f0b90b' : '#00ffcc';
+            const item = document.createElement('div'); item.className = 'coin-item'; const color = c.m === 'futures' ? '#f0b90b' : '#00ffcc';
             item.innerHTML = `<div><span class="coin-type" style="border:1px solid ${color}; color:${color}">${c.m.toUpperCase()}</span><span style="font-weight:bold;">${c.s}</span></div><div style="color:var(--gold); font-size:11px;">تحليل 🔭</div>`;
-            item.onclick = () => startRadar(c.s, c.m);
-            list.appendChild(item);
+            item.onclick = () => startRadar(c.s, c.m); list.appendChild(item);
         });
     }
 
@@ -581,54 +557,4 @@
             sig.innerText = buyP > 50 ? "🟢 SIGNAL: BULLISH" : "🔴 SIGNAL: BEARISH";
             sig.className = buyP > 50 ? "sig-bullish" : "sig-bearish";
             
-            let topAsk = asks.sort((a,b) => (b.v*b.p) - (a.v*a.p))[0], topBid = bids.sort((a,b) => (b.v*b.p) - (a.v*a.p))[0];
-            drawWallLine(topAsk, 'sell'); drawWallLine(topBid, 'buy');
-            
-            document.getElementById('s-walls').innerHTML = `<div style="color:var(--red); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS:</div>` + asks.slice(0, 3).map(a => `<div class="row"><span>Vol: ${(a.v*a.p/1000000).toFixed(2)}M</span><span>$${a.p.toLocaleString()}</span></div>`).join('');
-            document.getElementById('b-walls').innerHTML = `<div style="color:var(--green); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS:</div>` + bids.slice(0, 3).map(b => `<div class="row"><span>Vol: ${(b.v*b.p/1000000).toFixed(2)}M</span><span>$${b.p.toLocaleString()}</span></div>`).join('');
-            
-            const aiDec = document.getElementById('ai-decision'), aiTar = document.getElementById('ai-target'), aiC = document.getElementById('ai-conf');
-            if(buyP > 60) { sigBuffer.buy++; sigBuffer.sell = 0; } else if(sellP > 60) { sigBuffer.sell++; sigBuffer.buy = 0; } else { sigBuffer.buy = 0; sigBuffer.sell = 0; }
-            if(sigBuffer.buy >= 2) { aiDec.innerText = "🟢 STRONG BUY"; aiDec.style.color = "var(--green)"; aiTar.innerText = "$" + topAsk.p.toLocaleString(); aiC.innerText = "94%"; }
-            else if(sigBuffer.sell >= 2) { aiDec.innerText = "🔴 STRONG SELL"; aiDec.style.color = "var(--red)"; aiTar.innerText = "$" + topBid.p.toLocaleString(); aiC.innerText = "91%"; }
-            else { aiDec.innerText = "🟡 WAIT / SIDEWAYS"; aiDec.style.color = "var(--gold)"; aiTar.innerText = "N/A"; aiC.innerText = "45%"; }
-        } catch (e) {}
-    }
-
-    function drawWallLine(wall, type) {
-        const line = document.getElementById(type + '-wall-line'), volText = document.getElementById(type === 'sell' ? 'sw-vol' : 'bw-vol');
-        if (!wall || !currentPrice) return;
-        let range = currentPrice * 0.005, diff = wall.p - currentPrice, pos = 175 - (diff / range) * 175;
-        if (pos > -10 && pos < 360) { line.style.display = 'block'; line.style.top = pos + 'px'; volText.innerText = (wall.v * wall.p / 1000000).toFixed(2) + 'M'; }
-        else { line.style.display = 'none'; }
-    }
-
-    async function updateIceberg() {
-        try {
-            const url = currentMode === 'futures' ? `https://fapi.binance.com/fapi/v1/depth?symbol=${currentSymbol}&limit=5` : `https://api.binance.com/api/v3/depth?symbol=${currentSymbol}&limit=5`;
-            const res = await fetch(url); const data = await res.json();
-            let bids = data.bids, asks = data.asks; let found = [];
-            const sensitivity = parseInt(document.getElementById('ice-sensitivity').value);
-            if (lastBids.length > 0 && bids[0][0] === lastBids[0][0]) {
-                let d = parseFloat(bids[0][1]) - parseFloat(lastBids[0][1]), amt = d * bids[0][0];
-                if (amt > sensitivity) found.push({p: bids[0][0], m: amt, t: 'Buyer'});
-            }
-            if (lastAsks.length > 0 && asks[0][0] === lastAsks[0][0]) {
-                let d = parseFloat(asks[0][1]) - parseFloat(lastAsks[0][1]), amt = d * asks[0][0];
-                if (amt > sensitivity) found.push({p: asks[0][0], m: amt, t: 'Seller'});
-            }
-            if(found.length > 0) {
-                const list = document.getElementById('iceberg-list');
-                found.forEach(ice => {
-                    const row = document.createElement('div'); row.className = 'row';
-                    const mVal = ice.m >= 1000000 ? (ice.m/1000000).toFixed(2) + "M" : (ice.m/1000).toFixed(1) + "K";
-                    row.innerHTML = `<span style="color:${ice.t==='Buyer'?'var(--green)':'var(--red)'}">${ice.t.toUpperCase()}</span><span style="color:var(--gold)">$${mVal}</span><span>$${parseFloat(ice.p).toLocaleString()}</span>`;
-                    list.prepend(row); if (list.children.length > 5) list.removeChild(list.lastChild);
-                });
-            }
-            lastBids = bids; lastAsks = asks;
-        } catch (e) {}
-    }
-</script>
-</body>
-</html>
+            let topAsk = asks.sort((a,
