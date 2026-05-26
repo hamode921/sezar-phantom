@@ -17,7 +17,9 @@
         input.pass { background: #111; border: 1px solid #333; color: var(--gold); padding: 12px; text-align: center; margin-bottom: 20px; width: 95%; outline: none; border-radius: 5px; font-size: 18px; }
         button.login-btn { background: var(--gold); color: #000; border: none; padding: 15px; font-weight: bold; cursor: pointer; border-radius: 8px; width: 100%; font-size: 18px; margin-bottom: 20px; }
         
+        /* إضافة شاشة كوين جلاس هنا لضمان قراءتها برمجياً */
         #search-screen, #alpha-screen, #scanner-screen, #whale-hunt-screen, #pump-dump-screen, #coinglass-screen { display: none; width: 100%; max-width: 450px; text-align: center; margin-top: 20px; }
+        
         .sezar-brand { margin-bottom: 30px; }
         .sezar-brand .sub-text { font-size: 28px; font-weight: bold; color: var(--gold); text-shadow: 0 0 15px rgba(251, 191, 36, 0.5); }
         .search-input { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 18px; width: 95%; border-radius: 15px; font-size: 16px; outline: none; text-align: center; margin-bottom: 30px; }
@@ -52,9 +54,8 @@
         .sig-bullish { background: #064e3b; color: #22c55e; border: 1px solid #22c55e; }
         .sig-bearish { background: #450a0a; color: #ef4444; border: 1px solid #ef4444; }
         
-        /* تصميم الحاويات مالتك الأصلية لحفظ شكل التطبيق الفخم */
-        .nav-tabs { display: flex; gap: 5px; width: 95%; margin-bottom: 10px; justify-content: center; }
-        .tab-btn { flex: 1; padding: 12px 5px; border-radius: 8px; border: 1px solid var(--gold); background: #000; color: var(--gold); font-weight: bold; cursor: pointer; font-size: 11px; text-transform: uppercase; }
+        .nav-tabs { display: flex; gap: 5px; width: 95%; margin-bottom: 8px; }
+        .tab-btn { flex: 1; min-width: 60px; padding: 10px 3px; border-radius: 8px; border: 1px solid var(--gold); background: #000; color: var(--gold); font-weight: bold; cursor: pointer; font-size: 10px; white-space: nowrap; }
         .tab-btn.active { background: var(--gold) !important; color: #000 !important; border: 1px solid var(--gold) !important; }
 
         .scan-item { background: #080808; border: 1px solid #222; padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; text-align: right; }
@@ -92,17 +93,14 @@
         <div id="alpha-screen">
             <div class="sezar-brand"><span class="sub-text" style="color:var(--gold);">ALPHA WEB3</span></div>
             <div class="nav-tabs">
-                <button class="tab-btn" onclick="switchTab('scanner')">SCANNER 🛰️</button>
-                <button class="tab-btn" onclick="switchTab('whale-hunt')">BOTTOM 🚀</button>
-                <button class="tab-btn" onclick="switchTab('search')">SEARCH 🔍</button>
-                <button class="tab-btn active" onclick="switchTab('alpha')">ALPHA 🪐</button>
+                <button class="tab-btn active" onclick="switchTab('alpha')">🪐 ألفا Web3</button>
+                <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
+                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
+                <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 صيد الحيتان</button>
+                <button class="tab-btn" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP/DUMP</button>
             </div>
             <div class="nav-tabs">
-                <button class="tab-btn" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">PUMP/DUMP 🌋</button>
-                <button class="tab-btn" onclick="switchTab('alpha')">WHALE 🐋</button>
-            </div>
-            <div class="nav-tabs">
-                <button class="tab-btn" onclick="switchTab('coinglass')" style="border-color: #00d2ff; color: #00d2ff;">LIQUIDITY 🧲</button>
+                <button class="tab-btn" onclick="switchTab('coinglass')" style="border-color: #00d2ff; color: #00d2ff; max-width: 150px; margin: 0 auto;">🧲 السيولة</button>
             </div>
             <div id="alpha-list"></div>
         </div>
@@ -110,17 +108,14 @@
         <div id="search-screen">
             <div class="sezar-brand"><span class="sub-text">「 SEZAR-PHANTOM 」</span></div>
             <div class="nav-tabs">
-                <button class="tab-btn" onclick="switchTab('scanner')">SCANNER 🛰️</button>
-                <button class="tab-btn" onclick="switchTab('whale-hunt')">BOTTOM 🚀</button>
-                <button class="tab-btn active" onclick="switchTab('search')">SEARCH 🔍</button>
-                <button class="tab-btn" onclick="switchTab('alpha')">ALPHA 🪐</button>
+                <button class="tab-btn" onclick="switchTab('alpha')">🪐 ألفا Web3</button>
+                <button class="tab-btn active" onclick="switchTab('search')">🔍 بحث</button>
+                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
+                <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 صيد الحيتان</button>
+                <button class="tab-btn" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP/DUMP</button>
             </div>
             <div class="nav-tabs">
-                <button class="tab-btn" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">PUMP/DUMP 🌋</button>
-                <button class="tab-btn" onclick="switchTab('search')">WHALE 🐋</button>
-            </div>
-            <div class="nav-tabs">
-                <button class="tab-btn" onclick="switchTab('coinglass')" style="border-color: #00d2ff; color: #00d2ff;">LIQUIDITY 🧲</button>
+                <button class="tab-btn" onclick="switchTab('coinglass')" style="border-color: #00d2ff; color: #00d2ff; max-width: 150px; margin: 0 auto;">🧲 السيولة</button>
             </div>
             <input type="text" class="search-input" id="search-input" placeholder="🔍 ابحث (Spot & Futures)..." oninput="searchCoins()">
             <div id="results-list"></div>
@@ -129,35 +124,29 @@
         <div id="scanner-screen">
             <div class="sezar-brand"><span class="sub-text" style="color:var(--ghost);">WHALE SCANNER</span></div>
             <div class="nav-tabs">
-                <button class="tab-btn active" onclick="switchTab('scanner')">SCANNER 🛰️</button>
-                <button class="tab-btn" onclick="switchTab('whale-hunt')">BOTTOM 🚀</button>
-                <button class="tab-btn" onclick="switchTab('search')">SEARCH 🔍</button>
-                <button class="tab-btn" onclick="switchTab('alpha')">ALPHA 🪐</button>
+                <button class="tab-btn" onclick="switchTab('alpha')">🪐 ألفا Web3</button>
+                <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
+                <button class="tab-btn active" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
+                <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 صيد الحيتان</button>
+                <button class="tab-btn" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP/DUMP</button>
             </div>
             <div class="nav-tabs">
-                <button class="tab-btn" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">PUMP/DUMP 🌋</button>
-                <button class="tab-btn" onclick="switchTab('scanner')">WHALE 🐋</button>
-            </div>
-            <div class="nav-tabs">
-                <button class="tab-btn" onclick="switchTab('coinglass')" style="border-color: #00d2ff; color: #00d2ff;">LIQUIDITY 🧲</button>
+                <button class="tab-btn" onclick="switchTab('coinglass')" style="border-color: #00d2ff; color: #00d2ff; max-width: 150px; margin: 0 auto;">🧲 السيولة</button>
             </div>
             <div id="scanner-list"></div>
         </div>
 
         <div id="whale-hunt-screen">
-            <div class="sezar-brand"><span class="sub-text" style="color:var(--green);">GLOBAL BREAKOUT</span></div>
+            <div class="sezar-brand"><span class="sub-text" style="color:var(--green);">WHALE ACCUMULATION</span></div>
             <div class="nav-tabs">
-                <button class="tab-btn" onclick="switchTab('scanner')">SCANNER 🛰️</button>
-                <button class="tab-btn active" onclick="switchTab('whale-hunt')">BOTTOM 🚀</button>
-                <button class="tab-btn" onclick="switchTab('search')">SEARCH 🔍</button>
-                <button class="tab-btn" onclick="switchTab('alpha')">ALPHA 🪐</button>
+                <button class="tab-btn" onclick="switchTab('alpha')">🪐 ألفا Web3</button>
+                <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
+                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
+                <button class="tab-btn active" onclick="switchTab('whale-hunt')">🐋 صيد الحيتان</button>
+                <button class="tab-btn" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP/DUMP</button>
             </div>
             <div class="nav-tabs">
-                <button class="tab-btn" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">PUMP/DUMP 🌋</button>
-                <button class="tab-btn" onclick="switchTab('whale-hunt')">WHALE 🐋</button>
-            </div>
-            <div class="nav-tabs">
-                <button class="tab-btn" onclick="switchTab('coinglass')" style="border-color: #00d2ff; color: #00d2ff;">LIQUIDITY 🧲</button>
+                <button class="tab-btn" onclick="switchTab('coinglass')" style="border-color: #00d2ff; color: #00d2ff; max-width: 150px; margin: 0 auto;">🧲 السيولة</button>
             </div>
             <div id="whale-hunt-list"></div>
         </div>
@@ -165,17 +154,14 @@
         <div id="pump-dump-screen">
             <div class="sezar-brand"><span class="sub-text" style="color:var(--red);">PUMP & DUMP RADAR</span></div>
             <div class="nav-tabs">
-                <button class="tab-btn" onclick="switchTab('scanner')">SCANNER 🛰️</button>
-                <button class="tab-btn" onclick="switchTab('whale-hunt')">BOTTOM 🚀</button>
-                <button class="tab-btn" onclick="switchTab('search')">SEARCH 🔍</button>
-                <button class="tab-btn" onclick="switchTab('alpha')">ALPHA 🪐</button>
+                <button class="tab-btn" onclick="switchTab('alpha')">🪐 ألفا Web3</button>
+                <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
+                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
+                <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 صيد الحيتان</button>
+                <button class="tab-btn active" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP/DUMP</button>
             </div>
             <div class="nav-tabs">
-                <button class="tab-btn active" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">PUMP/DUMP 🌋</button>
-                <button class="tab-btn" onclick="switchTab('pump-dump')">WHALE 🐋</button>
-            </div>
-            <div class="nav-tabs">
-                <button class="tab-btn" onclick="switchTab('coinglass')" style="border-color: #00d2ff; color: #00d2ff;">LIQUIDITY 🧲</button>
+                <button class="tab-btn" onclick="switchTab('coinglass')" style="border-color: #00d2ff; color: #00d2ff; max-width: 150px; margin: 0 auto;">🧲 السيولة</button>
             </div>
             <div id="pump-dump-list"></div>
         </div>
@@ -183,17 +169,14 @@
         <div id="coinglass-screen">
             <div class="sezar-brand"><span class="sub-text" style="color:#00d2ff;">LIQUIDATION MAGNET</span></div>
             <div class="nav-tabs">
-                <button class="tab-btn" onclick="switchTab('scanner')">SCANNER 🛰️</button>
-                <button class="tab-btn" onclick="switchTab('whale-hunt')">BOTTOM 🚀</button>
-                <button class="tab-btn" onclick="switchTab('search')">SEARCH 🔍</button>
-                <button class="tab-btn" onclick="switchTab('alpha')">ALPHA 🪐</button>
+                <button class="tab-btn" onclick="switchTab('alpha')">🪐 ألفا Web3</button>
+                <button class="tab-btn" onclick="switchTab('search')">🔍 بحث</button>
+                <button class="tab-btn" onclick="switchTab('scanner')">🛰️ القناص (ميم)</button>
+                <button class="tab-btn" onclick="switchTab('whale-hunt')">🐋 صيد الحيتان</button>
+                <button class="tab-btn" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">🌋 PUMP/DUMP</button>
             </div>
             <div class="nav-tabs">
-                <button class="tab-btn" onclick="switchTab('pump-dump')" style="border-color: var(--red); color: var(--red);">PUMP/DUMP 🌋</button>
-                <button class="tab-btn" onclick="switchTab('coinglass')">WHALE 🐋</button>
-            </div>
-            <div class="nav-tabs">
-                <button class="tab-btn active" onclick="switchTab('coinglass')" style="border-color: #00d2ff; color: #00d2ff;">LIQUIDITY 🧲</button>
+                <button class="tab-btn active" onclick="switchTab('coinglass')" style="border-color: #00d2ff; color: #00d2ff; max-width: 150px; margin: 0 auto;">🧲 السيولة</button>
             </div>
             <select class="cg-range-select" id="cg-range" onchange="updateCoinglassMagnet()">
                 <option value="12h">نطاق 12 ساعة</option>
@@ -636,4 +619,53 @@
             let topAsk = asks.sort((a,b) => (b.v*b.p) - (a.v*a.p))[0], topBid = bids.sort((a,b) => (b.v*b.p) - (a.v*a.p))[0];
             drawWallLine(topAsk, 'sell'); drawWallLine(topBid, 'buy');
             
-            document.getElementById('s-walls').innerHTML = `<div style="color:var(--red); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS:</div>` + asks.slice(0, 3).map(a => `<div class="row"><span>Vol: ${(a.
+            document.getElementById('s-walls').innerHTML = `<div style="color:var(--red); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS:</div>` + asks.slice(0, 3).map(a => `<div class="row"><span>Vol: ${(a.v*a.p/1000000).toFixed(2)}M</span><span>$${a.p.toLocaleString()}</span></div>`).join('');
+            document.getElementById('b-walls').innerHTML = `<div style="color:var(--green); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS:</div>` + bids.slice(0, 3).map(b => `<div class="row"><span>Vol: ${(b.v*b.p/1000000).toFixed(2)}M</span><span>$${b.p.toLocaleString()}</span></div>`).join('');
+            
+            const aiDec = document.getElementById('ai-decision'), aiTar = document.getElementById('ai-target'), aiC = document.getElementById('ai-conf');
+            if(buyP > 60) { sigBuffer.buy++; sigBuffer.sell = 0; } else if(sellP > 60) { sigBuffer.sell++; sigBuffer.buy = 0; } else { sigBuffer.buy = 0; sigBuffer.sell = 0; }
+            if(sigBuffer.buy >= 2) { aiDec.innerText = "🟢 STRONG BUY"; aiDec.style.color = "var(--green)"; aiTar.innerText = "$" + topAsk.p.toLocaleString(); aiC.innerText = "94%"; }
+            else if(sigBuffer.sell >= 2) { aiDec.innerText = "🔴 STRONG SELL"; aiDec.style.color = "var(--red)"; aiTar.innerText = "$" + topBid.p.toLocaleString(); aiC.innerText = "91%"; }
+            else { aiDec.innerText = "🟡 WAIT / SIDEWAYS"; aiDec.style.color = "var(--gold)"; aiTar.innerText = "N/A"; aiC.innerText = "45%"; }
+        } catch (e) {}
+    }
+
+    function drawWallLine(wall, type) {
+        const line = document.getElementById(type + '-wall-line'), volText = document.getElementById(type === 'sell' ? 'sw-vol' : 'bw-vol');
+        if (!wall || !currentPrice) return;
+        let range = currentPrice * 0.005, diff = wall.p - currentPrice, pos = 175 - (diff / range) * 175;
+        if (pos > -10 && pos < 360) { line.style.display = 'block'; line.style.top = pos + 'px'; volText.innerText = (wall.v * wall.p / 1000000).toFixed(2) + 'M'; }
+        else { line.style.display = 'none'; }
+    }
+
+    async function updateIceberg() {
+        try {
+            const url = currentMode === 'futures' ? `https://fapi.binance.com/fapi/v1/depth?symbol=${currentSymbol}&limit=5` : `https://api.binance.com/api/v3/depth?symbol=${currentSymbol}&limit=5`;
+            const res = await fetch(url);
+            const data = await res.json();
+            let bids = data.bids, asks = data.asks;
+            let found = [];
+            const sensitivity = parseInt(document.getElementById('ice-sensitivity').value);
+            if (lastBids.length > 0 && bids[0][0] === lastBids[0][0]) {
+                let d = parseFloat(bids[0][1]) - parseFloat(lastBids[0][1]), amt = d * bids[0][0];
+                if (amt > sensitivity) found.push({p: bids[0][0], m: amt, t: 'Buyer'});
+            }
+            if (lastAsks.length > 0 && asks[0][0] === lastAsks[0][0]) {
+                let d = parseFloat(asks[0][1]) - parseFloat(lastAsks[0][1]), amt = d * asks[0][0];
+                if (amt > sensitivity) found.push({p: asks[0][0], m: amt, t: 'Seller'});
+            }
+            if(found.length > 0) {
+                const list = document.getElementById('iceberg-list');
+                found.forEach(ice => {
+                    const row = document.createElement('div'); row.className = 'row';
+                    const mVal = ice.m >= 1000000 ? (ice.m/1000000).toFixed(2) + "M" : (ice.m/1000).toFixed(1) + "K";
+                    row.innerHTML = `<span style="color:${ice.t==='Buyer'?'var(--green)':'var(--red)'}">${ice.t.toUpperCase()}</span><span style="color:var(--gold)">$${mVal}</span><span>$${parseFloat(ice.p).toLocaleString()}</span>`;
+                    list.prepend(row); if (list.children.length > 5) list.removeChild(list.lastChild);
+                });
+            }
+            lastBids = bids; lastAsks = asks;
+        } catch (e) {}
+    }
+</script>
+</body>
+</html>
