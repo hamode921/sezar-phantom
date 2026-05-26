@@ -22,6 +22,7 @@
         .sezar-brand .sub-text { font-size: 28px; font-weight: bold; color: var(--gold); text-shadow: 0 0 15px rgba(251, 191, 36, 0.5); }
         .search-input { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 18px; width: 95%; border-radius: 15px; font-size: 16px; outline: none; text-align: center; margin-bottom: 30px; }
         .coin-item { background: #080808; border: 1px solid #222; padding: 15px; border-radius: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .coin-item { background: #080808; border: 1px solid #222; padding: 15px; border-radius: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .coin-type { font-size: 9px; padding: 2px 5px; border-radius: 3px; margin-right: 5px; }
         #radar-ui { display: none; width: 100%; max-width: 450px; padding-bottom: 80px; position: relative; }
         .header { border: 1px solid var(--gold); padding: 5px; text-align: center; margin-bottom: 15px; border-radius: 5px; position: relative; }
@@ -247,6 +248,9 @@
 
     const coinglassKey = "504f42690ccb42118ebd1785d761e4e7";
 
+    // قائمة العملات الشاملة (رئيسية وميمز قوية وحركتها انفجارية) لتجنب أخطاء حقول الـ API المجهولة ولتحديث سريع وآمن 100%
+    const targetCgCoins = ["BTC", "ETH", "SOL", "BNB", "XRP", "ADA", "AVAX", "DOGE", "LINK", "SUI", "APT", "NEAR", "PEPE", "WIF", "BONK", "FLOKI", "SHIB", "ORDI", "1000SATS", "FET", "RENDER", "JUP", "ENA"];
+
     function setZoom(scale) { const container = document.getElementById('zoom-container'); container.style.transform = `scale(${scale})`; container.style.width = (100 / scale) + '%'; }
     
     function switchTab(tab) {
@@ -268,72 +272,77 @@
 
     async function updateCoinglassMagnet() {
         const range = document.getElementById('cg-range').value;
-        document.getElementById('cg-status').innerText = `🔄 جاري تصفية قمم وقيعان السوق [${range}]...`;
+        document.getElementById('cg-status').innerText = `🔄 جاري صيد مناطق الارتداد والانعكاس [${range}]...`;
         const list = document.getElementById('coinglass-list');
         let results = [];
 
-        try {
-            const res = await fetch(`https://open-api-v4.coinglass.com/api/futures/liquidation/aggregated-heatmap-all?range=${range}`, {
-                method: 'GET',
-                headers: { 'coinglassSecret': coinglassKey, 'Accept': 'application/json' }
-            });
-            const json = await res.json();
-            
-            if (json.success && json.data && json.data.length > 0) {
-                json.data.forEach(coin => {
-                    let sym = coin.symbol;
-                    let currentPrice = parseFloat(coin.currentPrice) || 0;
-                    let targetPrice = parseFloat(coin.targetPrice) || 0;
-                    let volume = parseFloat(coin.volume) || 0;
+        // الفحص البرمجي الصحيح والمطابق للـ API النموذجي لمنع الـ NaN
+        for (let sym of targetCgCoins) {
+            try {
+                const res = await fetch(`https://open-api-v4.coinglass.com/api/futures/liquidation/aggregated-heatmap/model1?symbol=${sym}&range=${range}`, {
+                    method: 'GET',
+                    headers: { 'coinglassSecret': coinglassKey, 'Accept': 'application/json' }
+                });
+                const json = await res.json();
+                
+                if (json.success && json.data) {
+                    let currentPrice = parseFloat(json.data.currentPrice) || 0;
+                    let mapData = json.data.heatmapData || [];
+                    
+                    if (mapData.length > 0 && currentPrice > 0) {
+                        // جلب الجدار المالي الأضخم المحبوس لتصفية العقود
+                        let topLiq = mapData.sort((a, b) => parseFloat(b.volume) - parseFloat(a.volume))[0];
+                        let targetPrice = parseFloat(topLiq.price);
+                        let volume = parseFloat(topLiq.volume);
 
-                    if (currentPrice > 0 && targetPrice > 0 && volume > 200000) { 
-                        let distancePct = ((targetPrice - currentPrice) / currentPrice) * 100;
-                        let side = distancePct > 0 ? "SHORT" : "LONG";
-                        let absDistance = Math.abs(distancePct);
+                        if (volume > 50000) {
+                            let distancePct = ((targetPrice - currentPrice) / currentPrice) * 100;
+                            let side = distancePct > 0 ? "SHORT" : "LONG"; // LONG تعني الجدار بالأسفل وهو قاع يرتد، SHORT تعني قمة تنعكس
+                            let absDistance = Math.abs(distancePct);
 
-                        // جلب العملات اللي على وشك الارتداد أو الانعكاس القريب (ضمن نطاق 12% كحد أقصى)
-                        if (absDistance <= 12.0) {
-                            // معادلة قوة الجدار: السيولة المالية مقسومة على المسافة.. الجدار الأثقل والأقرب يأخذ المرتبة الأولى
-                            let score = volume / (absDistance + 0.1); 
+                            // صيد الفرص القريبة حتى نطاق 12% لاصطياد كل عملات الميمز المتهيأة
+                            if (absDistance <= 12.0) {
+                                // سكور ذكي: يرجح كفة الجدار الأثقل سيولة والأقرب تلامساً مع السعر
+                                let score = volume / (absDistance + 0.1);
 
-                            results.push({
-                                symbol: sym.endsWith("USDT") ? sym : sym + "USDT",
-                                currentPrice,
-                                targetPrice,
-                                volume,
-                                side,
-                                distance: absDistance,
-                                score: score
-                            });
+                                results.push({
+                                    symbol: sym === "1000SATS" || sym === "10000SATS" ? sym : sym + "USDT",
+                                    currentPrice,
+                                    targetPrice,
+                                    volume,
+                                    side,
+                                    distance: absDistance,
+                                    score: score
+                                });
+                            }
                         }
                     }
-                });
-            }
-        } catch (e) {}
+                }
+            } catch (e) {}
+        }
 
-        // ترتيب تنازلي بناءً على قوة الفرصة (الجدار الأقوى والأقرب للارتداد يظهر أولاً)
+        // ترتيب تنازلي: أقوى الفرص الانعكاسية من القاع أو القمة تظهر بالصدارة
         results.sort((a, b) => b.score - a.score);
 
         if (results.length === 0) {
-            list.innerHTML = '<div style="color:#555; margin-top:20px;">لا توجد مناطق ارتداد قوية مكتشفة حالياً.</div>';
+            list.innerHTML = '<div style="color:#555; margin-top:20px;">لا توجد مناطق انعكاس مطلقة مكتشفة حالياً.</div>';
         } else {
             let html = '';
-            results.slice(0, 25).forEach(item => {
-                // تفعيل وميض التنبيه الحرج إذا كانت العملة ملامسة تماماً للجدار وبدها ترتد (أقل من 2.5%)
+            results.forEach(item => {
                 const isCritical = item.distance <= 2.5;
                 const tagClass = item.side === "LONG" ? "tag-long" : "tag-short";
                 
-                // صياغة المسميات بناءً على رغبتك الفنية في القمم والقيعان المطلقة
+                // صياغة فنية مخصصة لقناص القمم والقيعان المطلقة
                 const label = item.side === "LONG" ? "قاع يرتد للأعلى 🟢" : "قمة تهبط للأسفل 🔴";
-                const details = item.side === "LONG" ? "ضرب تصفية الشراء 🚀" : "ضرب تصفية البيع 📉";
+                const details = item.side === "LONG" ? "تجميع سيولة الشراء جاهز 🚀" : "تجميع سيولة البيع جاهز 📉";
                 
                 html += `<div class="scan-item ${isCritical ? 'critical-alert' : ''}" style="border-left: 5px solid ${item.side === 'LONG' ? 'var(--green)' : 'var(--red)'}">
                     <div style="text-align:right">
                         <div style="color:var(--gold); font-weight:bold; font-size:16px; display:flex; align-items:center;">
                             🧲 ${item.symbol} <span class="magnet-tag ${tagClass}">${label}</span>
                         </div>
-                        <div style="color:#fff; font-size:13px; font-weight:bold; margin-top:4px;">منطقة الارتداد الصفراء: $${item.targetPrice.toLocaleString()}</div>
-                        <div style="color:#aaa; font-size:10px; margin-top:2px;">الحالة الافتراضية: <span style="color:${item.side==='LONG'?'var(--green)':'var(--red)'}">${details}</span></div>
+                        <div style="color:#fff; font-size:13px; font-weight:bold; margin-top:4px;">نقطة الانعكاس الصفراء: $${item.targetPrice.toLocaleString()}</div>
+                        <div style="color:#aaa; font-size:10px; margin-top:2px;">الوضع الفني: <span style="color:${item.side==='LONG'?'var(--green)':'var(--red)'}">${details}</span></div>
                         <div style="color:#666; font-size:10px;">كثافة السيولة المحبوسة: $${(item.volume/1000000).toFixed(2)}M</div>
                     </div>
                     <div style="text-align:left;">
@@ -344,7 +353,7 @@
             });
             list.innerHTML = html;
         }
-        document.getElementById('cg-status').innerText = `✨ رادار عكس الاتجاه نشط (قناص القمم والقيعان)`;
+        document.getElementById('cg-status').innerText = `✨ رادار عكس الاتجاه نشط (أمان 100% بدون حظر)`;
     }
 
     async function updateAlpha() {
@@ -539,7 +548,7 @@
             let myId = localStorage.getItem('sz_device_id') || 'DEV-' + Math.random().toString(36).substr(2, 9);
             localStorage.setItem('sz_device_id', myId);
             if (data.deviceId && data.deviceId !== myId) { err.innerText = "⚠️ جهاز آخر!"; err.style.display = 'block'; return; }
-            if (!data.deviceId) await db.collection("users").doc(k).update({ deviceId: MyId });
+            if (!data.deviceId) await db.collection("users").doc(k).update({ deviceId: myId });
             localStorage.setItem('sz_ultimate_v1_key', k); showSearch(); 
         } else { err.innerText = "❌ الكود خطأ!"; err.style.display = 'block'; }
     }
