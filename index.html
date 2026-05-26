@@ -483,7 +483,7 @@
                             ${c.isPump ? '<span class="hunt-tag">PUMPING 🔥</span>' : '<span class="dump-tag">DUMPING 📉</span>'}
                         </div>
                         <div style="color:${c.isPump ? 'var(--green)' : 'var(--red)'}; font-size:11px;">
-                            ${c.isPump ? 'MOON MISSION: ' + c.priceChangePercent + '%' : 'LIQUIDITY CRASH: ' + c.priceChangePercent + '%'}
+                            ${c.isPump ? 'MOON MISSION: ' + c.priceChangePercent + '%' : 'LIQUIDITY CHASH: ' + c.priceChangePercent + '%'}
                         </div>
                         <div style="color:#888; font-size:10px;">VOL: ${(parseFloat(c.quoteVolume)/1000000).toFixed(1)}M | INSIDER LEVEL: HIGH</div>
                     </div>
@@ -606,52 +606,4 @@
             drawWallLine(topAsk, 'sell'); drawWallLine(topBid, 'buy');
             
             document.getElementById('s-walls').innerHTML = `<div style="color:var(--red); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🔴 SELL WALLS:</div>` + asks.slice(0, 3).map(a => `<div class="row"><span>Vol: ${(a.v*a.p/1000000).toFixed(2)}M</span><span>$${a.p.toLocaleString()}</span></div>`).join('');
-            document.getElementById('b-walls').innerHTML = `<div style="color:var(--green); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS:</div>` + bids.slice(0, 3).map(b => `<div class="row"><span>Vol: ${(b.v*b.p/1000000).toFixed(2)}M</span><span>$${b.p.toLocaleString()}</span></div>`).join('');
-            
-            const aiDec = document.getElementById('ai-decision'), aiTar = document.getElementById('ai-target'), aiC = document.getElementById('ai-conf');
-            if(buyP > 60) { sigBuffer.buy++; sigBuffer.sell = 0; } else if(sellP > 60) { sigBuffer.sell++; sigBuffer.buy = 0; } else { sigBuffer.buy = 0; sigBuffer.sell = 0; }
-            if(sigBuffer.buy >= 2) { aiDec.innerText = "🟢 STRONG BUY"; aiDec.style.color = "var(--green)"; aiTar.innerText = "$" + topAsk.p.toLocaleString(); aiC.innerText = "94%"; }
-            else if(sigBuffer.sell >= 2) { aiDec.innerText = "🔴 STRONG SELL"; aiDec.style.color = "var(--red)"; aiTar.innerText = "$" + topBid.p.toLocaleString(); aiC.innerText = "91%"; }
-            else { aiDec.innerText = "🟡 WAIT / SIDEWAYS"; aiDec.style.color = "var(--gold)"; aiTar.innerText = "N/A"; aiC.innerText = "45%"; }
-        } catch (e) {}
-    }
-
-    function drawWallLine(wall, type) {
-        const line = document.getElementById(type + '-wall-line'), volText = document.getElementById(type === 'sell' ? 'sw-vol' : 'bw-vol');
-        if (!wall || !currentPrice) return;
-        let range = currentPrice * 0.005, diff = wall.p - currentPrice, pos = 175 - (diff / range) * 175;
-        if (pos > -10 && pos < 360) { line.style.display = 'block'; line.style.top = pos + 'px'; volText.innerText = (wall.v * wall.p / 1000000).toFixed(2) + 'M'; }
-        else { line.style.display = 'none'; }
-    }
-
-    async function updateIceberg() {
-        try {
-            const url = currentMode === 'futures' ? `https://fapi.binance.com/fapi/v1/depth?symbol=${currentSymbol}&limit=5` : `https://api.binance.com/api/v3/depth?symbol=${currentSymbol}&limit=5`;
-            const res = await fetch(url);
-            const data = await res.json();
-            let bids = data.bids, asks = data.asks;
-            let found = [];
-            const sensitivity = parseInt(document.getElementById('ice-sensitivity').value);
-            if (lastBids.length > 0 && bids[0][0] === lastBids[0][0]) {
-                let d = parseFloat(bids[0][1]) - parseFloat(lastBids[0][1]), amt = d * bids[0][0];
-                if (amt > sensitivity) found.push({p: bids[0][0], m: amt, t: 'Buyer'});
-            }
-            if (lastAsks.length > 0 && asks[0][0] === lastAsks[0][0]) {
-                let d = parseFloat(asks[0][1]) - parseFloat(lastAsks[0][1]), amt = d * asks[0][0];
-                if (amt > sensitivity) found.push({p: asks[0][0], m: amt, t: 'Seller'});
-            }
-            if(found.length > 0) {
-                const list = document.getElementById('iceberg-list');
-                found.forEach(ice => {
-                    const row = document.createElement('div'); row.className = 'row';
-                    const mVal = ice.m >= 1000000 ? (ice.m/1000000).toFixed(2) + "M" : (ice.m/1000).toFixed(1) + "K";
-                    row.innerHTML = `<span style="color:${ice.t==='Buyer'?'var(--green)':'var(--red)'}">${ice.t.toUpperCase()}</span><span style="color:var(--gold)">$${mVal}</span><span>$${parseFloat(ice.p).toLocaleString()}</span>`;
-                    list.prepend(row); if (list.children.length > 5) list.removeChild(list.lastChild);
-                });
-            }
-            lastBids = bids; lastAsks = asks;
-        } catch (e) {}
-    }
-</script>
-</body>
-</html>
+            document.getElementById('b-walls').innerHTML = `<div style="color:var(--green); font-weight:bold; border-bottom: 1px solid #333; padding-bottom:5px;">🟢 BUY WALLS:</div>` + bids.slice(0, 3).map(b => `<div class="
